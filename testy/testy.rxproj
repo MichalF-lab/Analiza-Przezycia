@@ -9,7 +9,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupFile>script3.R</StartupFile>
+    <StartupFile>Script.R</StartupFile>
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
