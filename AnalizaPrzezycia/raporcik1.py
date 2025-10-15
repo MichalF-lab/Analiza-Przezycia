@@ -10,7 +10,7 @@ def dEW(x, alpha, beta, gamma):
 
 
 def pEW(x, alpha, beta, gamma): 
-    return weibull_cdf = (1 - np.exp(-(x / beta)**alpha))**gamma
+    return (1 - np.exp(-(x / beta)**alpha))**gamma
 
 
 def qEW(p, alpha, beta, gamma):
@@ -25,6 +25,6 @@ def hazard_EW(x, alpha, beta, gamma):
     survival = 1 - F
     return np.where(survival > 1e-10, f / survival, np.inf)
 
-def rEW(size, alpha, beta, gamma)
+def rEW(size, alpha, beta, gamma):
     samples = np.random.uniform(0, 1, size=100)
     return pEW(samples, alpha, beta, gamma)
