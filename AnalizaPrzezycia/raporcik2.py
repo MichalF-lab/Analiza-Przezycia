@@ -41,9 +41,8 @@ def stats_type1(data, t0):
     return {
         'n': len(data),
         'n_complete': len(complete),
-        'mean': np.mean(complete),
+        'min_time': np.min(data),
         'median': np.median(complete),
-        'std': np.std(complete, ddof=1)
     }
 
 def stats_type2(data, m):
@@ -52,9 +51,7 @@ def stats_type2(data, m):
         'n': len(data),
         'n_complete': m,
         'censoring_value': data[m],
-        'mean': np.mean(complete),
-        'median': np.median(complete),
-        'std': np.std(complete, ddof=1)
+        'median': np.median(complete)
     }
 
 def stats_random(data):
@@ -155,42 +152,28 @@ from wykresy import wzor_do_base64
 def przeslij_dane2():
     """
     Główna funkcja
-    
-    Zwraca:
-    -------
-    dict : Słownik z wykresami zakodowanymi w base64
     """
-    print("   📈 Wykres 1: Funkcje trygonometryczne...")
-    wykres1 = wykres_liniowy()
     
-    print("   📊 Wykres 2: Sprzedaż miesięczna...")
-    wykres2 = wykres_slupkowy()
-
-    dane = wykres_kolowy()
-    print(dane.keys())
+    print("   📈 Dane zad2:")
+    dane1 = stats1
+    dane2 = stats2
+    dane3 = stats3
     
-
+    print("   📈 Dane zad3:")
+    daneA = statsA
+    daneB = statsB
 
     print("\n✍️ Generowanie wzorów matematycznych:")
-    
     # Funkcja gęstości (PDF)
-    wzor_pdf_latex = r'f(x) = \alpha \lambda e^{-\lambda x} \left(1 - e^{-\lambda x}\right)^{\alpha - 1}, \quad x \ge 0'
-    wzor_pdf = wzor_do_base64(wzor_pdf_latex, "Funkcja gęstości (PDF)")
-
-    # Dystrybuanta (CDF)
-    wzor_cdf_latex = r'F(x) = \left(1 - e^{-\lambda x}\right)^\alpha, \quad x \ge 0'
-    wzor_cdf = wzor_do_base64(wzor_cdf_latex, "Dystrybuanta (CDF)")
-
-    # Funkcja kwantylowa (Q)
-    wzor_kwantyl_latex = r'Q(p) = -\frac{1}{\lambda}\ln\left(1 - p^{1/\alpha}\right), \quad 0<p<1'
-    wzor_kwantyl = wzor_do_base64(wzor_kwantyl_latex, "Funkcja kwantylowa")
+    wzor_pdf_latex = r'f(x) = \alpha \lambda e^{-\lambda x} \left(1 - e^{-\lambda x}\right)^{\alpha - 1}, \quad x \geq 0'
+    wzor_pdf = wzor_do_base64(wzor_pdf_latex, "Funkcja gęstości (PDF) \n")
     
     
     return {
-        'wykres1': wykres1,
-        'wykres2': wykres2,
         'WZOR_PDF': wzor_pdf,
-        'WZOR_CDF': wzor_cdf,
-        'WZOR_KWANTYL': wzor_kwantyl,
-        'dane': dane,
+        'dane1': dane1,
+        'dane2': dane2,
+        'dane3': dane3,
+        'daneA': daneA,
+        'daneB': daneB
     }

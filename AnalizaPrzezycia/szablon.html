@@ -209,21 +209,6 @@
         </table>
     </div>
 
-    <div class="code-block">
-        <div class="code-header">raporcik2.py</div>
-        <pre><code>{{KOD_RAPORCIK}}</code></pre>
-    </div>
-
-    <div class="code-block">
-        <div class="code-header">wykresy.py</div>
-        <pre><code>{{KOD_WYKRESY}}</code></pre>
-    </div>
-
-    <div class="code-block">
-        <div class="code-header">AnalizaPrzezycia.py</div>
-        <pre><code>{{KOD_ANALIZA}}</code></pre>
-    </div>
-
     <!-- SEKCJA 2.1:  -->
     <div class="section">
         <h2>1. Uogólniony rozkład wykładniczy GE(λ, α)</h2>
@@ -237,96 +222,106 @@
         <div class="chart-container">
             <h3>Funkcja gęstości:</h3>
             <p>
-                \[
-                f(x) = \alpha\lambda e^{-\lambda x} \left(1 - e^{-\lambda x}\right)^{\alpha - 1}, \quad x \ge 0
-                \]
+                <img class="formula" src="{{WZOR_PDF}}" alt="Funkcja gęstości (PDF)">
             </p>
-        </div>
-        <div class="code-block">
-            <pre><code>
-def dGE(x, lambdaa, alpha):
-    return alpha * lambdaa * np.exp(-lambdaa * x) * (1 - np.exp(-lambdaa * x))**(alpha - 1)
-        </code></pre>
-        </div>
-
-        <div class="chart-container">
-            <h3>Dystrybuanta:</h3>
-            <p>
-                \[
-                F(x) = \left(1 - e^{-\lambda x}\right)^\alpha, \quad x \ge 0
-                \]
-            </p>
-        </div>
-        <div class="code-block">
-            <pre><code>
-def pGE(x, lambdaa, alpha):
-    return (1 - np.exp(-lambdaa * x))**alpha
-        </code></pre>
-        </div>
-
-        <div class="chart-container">
-            <h3>Funkcja kwantylowa:</h3>
-            <p>
-                \[
-                Q(p) = -\frac{1}{\lambda} \ln\left(1 - p^{1/\alpha}\right), \quad 0
-            <p<1
-        \]</p>
-        </div>
-        <div class="code-block">
-            <pre><code>
-def qGE(p, lambdaa, alpha):
-    return -(1/lambdaa) * np.log(1 - p**(1/alpha))
-        </code></pre>
-        </div>
-
-        <h3>Generator zmiennych GE(λ, α)</h3>
-        <div class="code-block">
-            <pre><code>
-def rGE(n, lambdaa, alpha):
-    u = np.random.uniform(0, 1, n)
-    return qGE(u, lambdaa, alpha)
-        </code></pre>
         </div>
 
         <h2>2. Generowanie danych cenzurowanych</h2>
 
         <h3>(a) Cenzurowanie I-go typu</h3>
-        <p>Dane cenzurowane przy czasie obserwacji \( t_0 \).</p>
+        <p>Dane cenzurowane przy czasie obserwacji t0.</p>
         <div class="code-block">
             <pre><code>
-def censor_type1(t0, n=10, lambdaa=1, alpha=1):
-    data = rGE(n, lambdaa, alpha)
-    censored = np.minimum(data, t0)
-    status = (data <= t0).astype(int)
-    return list(zip(censored, status))
-        </code></pre>
+  def first_type_error(t0, n = 10, lambdaa = 1, alpha = 1):
+    ext = [dexp(lambdaa, alpha) for _ in range(n)]
+    for i in range(len(ext)):
+        if ext[i] > t0:
+            ext[i] = t0
+    return ext
+            </code></pre>
         </div>
+        <br><br><br><br><br><br>
+
 
         <h3>(b) Cenzurowanie II-go typu</h3>
-        <p>Cenzurujemy po uzyskaniu \( m \) niecenzurowanych obserwacji.</p>
+        <p>Cenzurujemy po uzyskaniu m niecenzurowanych obserwacji.</p>
         <div class="code-block">
             <pre><code>
-def censor_type2(m, n=10, lambdaa=1, alpha=1):
-    data = np.sort(rGE(n, lambdaa, alpha))
-    t0 = data[m-1]
-    status = np.array([1 if i < m else 0 for i in range(n)])
-    censored = np.minimum(data, t0)
-    return list(zip(censored, status))
-        </code></pre>
+  def second_type_error(m, n = 10, lambdaa = 1, alpha = 1):
+    ext = [dexp(lambdaa, alpha) for _ in range(n)]
+    ext.sort()
+    ext = ext[:m]
+    ext += [max(ext) for _ in range(n - m)]
+    return ext
+            </code></pre>
         </div>
 
         <h3>(c) Cenzurowanie losowe niezależne</h3>
-        <p>Czas cenzurowania ma rozkład wykładniczy \( E(\eta) \).</p>
+        <p>Czas cenzurowania ma rozkład wykładniczy λ.</p>
         <div class="code-block">
             <pre><code>
-def censor_random(eta, n=10, lambdaa=1, alpha=1):
-    lifetimes = rGE(n, lambdaa, alpha)
-    censor_times = np.random.exponential(scale=eta, size=n)
-    observed = np.minimum(lifetimes, censor_times)
-    status = (lifetimes <= censor_times).astype(int)
-    return list(zip(observed, status))
-        </code></pre>
+ def random_type_error(eta, n = 10, lambdaa = 1, alpha = 1):
+    ext = [dexp(lambdaa, alpha) for _ in range(n)]
+    ext2 = [np.random.exponential(scale=eta) for _ in range(n)]
+    ext3 = []
+    for i in range(len(ext)):
+        if ext[i] > ext2[i]:
+            ext3.append((ext[i], 1))
+        else:
+            ext3.append((ext2[i], 0))
+    return ext3
+            </code></pre>
         </div>
+    </div>
+    <br><br><br><br><br><br>
+    <div class="code-block">
+        <pre><code>
+    n = 20
+    lambdaa = 1.5
+    alpha = 2.0
+        </code></pre>
+    </div>
+    <div class="section">
+        <h2>1️⃣ Cenzurowanie typu I</h2>
+        <table>
+            <tr><th>Parametr</th><th>Wartość</th></tr>
+            <tr><td>n</td><td>{{D1N}}</td></tr>
+            <tr><td>Liczba pełnych obserwacji</td><td>{{D1NC}}</td></tr>
+            <tr><td>Pierwsza obserwacja</td><td>{{D1M}}</td></tr>
+            <tr><td>Mediana</td><td>{{D1MED}}</td></tr>
+        </table>
+    </div>
+    <div class="section">
+        <h2>2️⃣ Cenzurowanie typu II</h2>
+        <table>
+            <tr><th>Parametr</th><th>Wartość</th></tr>
+            <tr><td>n</td><td>{{D2N}}</td></tr>
+            <tr><td>Liczba pełnych obserwacji (m)</td><td>{{D2NC}}</td></tr>
+            <tr><td>Wartość cenzurowania</td><td>{{D2CV}}</td></tr>
+            <tr><td>Mediana</td><td>{{D2MED}}</td></tr>
+        </table>
+    </div>
+    <div class="section">
+        <h2>3️⃣ Cenzurowanie losowe</h2>
+        <table>
+            <tr><th>Parametr</th><th>Wartość</th></tr>
+            <tr><td>n</td><td>{{D3N}}</td></tr>
+            <tr><td>Liczba pełnych</td><td>{{D3NC}}</td></tr>
+            <tr><td>Liczba ocenzurowanych</td><td>{{D3NCEN}}</td></tr>
+            <tr><td>Min czas</td><td>{{D3MIN}}</td></tr>
+            <tr><td>Max czas</td><td>{{D3MAX}}</td></tr>
+            <tr><td>Mediana czasu</td><td>{{D3MED}}</td></tr>
+        </table>
+    </div>
+    <div class="section">
+        <h2>💊 Porównanie leków A i B</h2>
+        <table>
+            <tr><th>Statystyka</th><th>Lek A</th><th>Lek B</th></tr>
+            <tr><td>Liczba obserwacji</td><td>{{DAN}}</td><td>{{DBN}}</td></tr>
+            <tr><td>Liczba pełnych</td><td>{{DANC}}</td><td>{{DBNC}}</td></tr>
+            <tr><td>Pierwsza obserwacja</td><td>{{DAM}}</td><td>{{DBM}}</td></tr>
+            <tr><td>Mediana</td><td>{{DAMED}}</td><td>{{DBMED}}</td></tr>
+        </table>
     </div>
 
     <!-- SEKCJA 5: PODSUMOWANIE -->

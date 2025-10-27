@@ -72,6 +72,7 @@ def wzor_do_base64(wzor_latex, tytul_wzoru):
 def wykres_liniowy():
     
     def dEW(x, alpha, beta, gamma):
+        x = np.maximum(x, 1e-10) 
         weibull_cdf = 1 - np.exp(-(x / beta)**alpha)
         weibull_pdf = (alpha / beta) * (x / beta)**(alpha - 1) * np.exp(-(x / beta)**alpha)
     
@@ -205,7 +206,7 @@ def wykres_slupkowy():
     
     return wykres_do_base64(fig)
 
-def wykres_kolowy():
+def satystyki():
     def qEW(p, alpha, beta, gamma):
         return beta * (-np.log(1 - p**(1/gamma)))**(1/alpha)
 
@@ -303,22 +304,19 @@ def wykres_kolowy():
 
 
 
-def def przeslij_dane1():
+def przeslij_dane1():
     """
     Główna funkcja do importu wykresów i wzorów LaTeX
-    
-    Zwraca:
-    -------
-    dict : Słownik z wykresami zakodowanymi w base64
     """
-    print("   📈 Wykres 1: Funkcje trygonometryczne...")
+    print("   📈 Wykres 1:")
     wykres1 = wykres_liniowy()
     
-    print("   📊 Wykres 2: Sprzedaż miesięczna...")
+
+    print("   📈 Wykres 2:")
     wykres2 = wykres_slupkowy()
 
-    dane = wykres_kolowy()
-    print(dane.keys())
+    print("   📈 Dane:")
+    dane = satystyki()
     
 
 
