@@ -303,9 +303,9 @@ def wykres_kolowy():
 
 
 
-def stworz_wykresy():
+def def przeslij_dane1():
     """
-    Główna funkcja tworząca wszystkie wykresy
+    Główna funkcja do importu wykresów i wzorów LaTeX
     
     Zwraca:
     -------

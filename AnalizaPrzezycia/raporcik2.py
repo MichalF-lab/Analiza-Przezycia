@@ -101,7 +101,6 @@ eta = 1.0
 data3 = random_type_error(eta, n=n, lambdaa=lambdaa, alpha=alpha)
 stats3 = stats_random(data3)
 
-import numpy as np
 
 # --- Dane dla leku A ---
 # 10 pacjentów z remisją:
@@ -144,3 +143,54 @@ bez_remisji_B = np.array([
     1.0, 1.0, 1.0, 1.0, 1.0,
     1.0, 1.0, 1.0, 1.0, 1.0
 ])
+
+A = np.concatenate((remisja_A, bez_remisji_A))
+B = np.concatenate((remisja_B, bez_remisji_B))
+
+statsA = stats_type1(A, t0=1.0)
+statsB = stats_type1(B, t0=1.0)
+
+from wykresy import wzor_do_base64
+
+def przeslij_dane2():
+    """
+    Główna funkcja
+    
+    Zwraca:
+    -------
+    dict : Słownik z wykresami zakodowanymi w base64
+    """
+    print("   📈 Wykres 1: Funkcje trygonometryczne...")
+    wykres1 = wykres_liniowy()
+    
+    print("   📊 Wykres 2: Sprzedaż miesięczna...")
+    wykres2 = wykres_slupkowy()
+
+    dane = wykres_kolowy()
+    print(dane.keys())
+    
+
+
+    print("\n✍️ Generowanie wzorów matematycznych:")
+    
+    # Funkcja gęstości (PDF)
+    wzor_pdf_latex = r'f(x) = \alpha \lambda e^{-\lambda x} \left(1 - e^{-\lambda x}\right)^{\alpha - 1}, \quad x \ge 0'
+    wzor_pdf = wzor_do_base64(wzor_pdf_latex, "Funkcja gęstości (PDF)")
+
+    # Dystrybuanta (CDF)
+    wzor_cdf_latex = r'F(x) = \left(1 - e^{-\lambda x}\right)^\alpha, \quad x \ge 0'
+    wzor_cdf = wzor_do_base64(wzor_cdf_latex, "Dystrybuanta (CDF)")
+
+    # Funkcja kwantylowa (Q)
+    wzor_kwantyl_latex = r'Q(p) = -\frac{1}{\lambda}\ln\left(1 - p^{1/\alpha}\right), \quad 0<p<1'
+    wzor_kwantyl = wzor_do_base64(wzor_kwantyl_latex, "Funkcja kwantylowa")
+    
+    
+    return {
+        'wykres1': wykres1,
+        'wykres2': wykres2,
+        'WZOR_PDF': wzor_pdf,
+        'WZOR_CDF': wzor_cdf,
+        'WZOR_KWANTYL': wzor_kwantyl,
+        'dane': dane,
+    }

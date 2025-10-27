@@ -6,14 +6,15 @@ Generuje profesjonalne raporty PDF z wykresami i kodem
 from weasyprint import HTML, CSS
 from datetime import datetime
 import os
-from wykresy import stworz_wykresy
+from wykresy import przeslij_dane1
+from raporcik2 import przeslij_dane2
 import matplotlib.pyplot as plt
 
 
 
 
 def wczytaj_plik(nazwa_pliku, encoding='utf-8'):
-    """Wczytuje zawartość pliku"""
+    """Wczytuje zawartość pliku1"""
     try:
         with open(nazwa_pliku, 'r', encoding=encoding) as f:
             return f.read()
@@ -23,6 +24,7 @@ def wczytaj_plik(nazwa_pliku, encoding='utf-8'):
     except Exception as e:
         print(f"❌ Błąd wczytywania {nazwa_pliku}: {e}")
         return None
+    
 
 def stworz_html(wykresy):
     """Tworzy kompletny HTML z danymi"""
@@ -97,7 +99,7 @@ def generuj_pdf(nazwa_pliku="raport.pdf"):
     
     print("\n🔧 Generowanie wykresów...")
     try:
-        wykresy = stworz_wykresy()
+        wykresy = przeslij_dane1()
     except Exception as e:
         print(f"❌ Błąd generowania wykresów: {e}")
         return False
