@@ -1,8 +1,8 @@
 import numpy as np
-from numpy import random
+from report_part1 import wzor_do_base64
 
 def dexp(lambdaa, alpha):
-    t = random.rand()
+    t = np.random.rand()
     return -(1/lambdaa) * np.log(1 - t**(1/alpha))
 
 def first_type_error(t0, n = 10, lambdaa = 1, alpha = 1):
@@ -147,7 +147,6 @@ B = np.concatenate((remisja_B, bez_remisji_B))
 statsA = stats_type1(A, t0=1.0)
 statsB = stats_type1(B, t0=1.0)
 
-from wykresy import wzor_do_base64
 
 def przeslij_dane2():
     """

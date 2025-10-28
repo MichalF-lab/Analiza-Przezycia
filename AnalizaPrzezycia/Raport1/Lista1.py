@@ -6,9 +6,8 @@ Generuje profesjonalne raporty PDF z wykresami i kodem
 from weasyprint import HTML, CSS
 from datetime import datetime
 import os
-from wykresy import przeslij_dane1
-from raporcik2 import przeslij_dane2
-import matplotlib.pyplot as plt
+from report_part1 import przeslij_dane1
+from report_part2 import przeslij_dane2
 
 
 
@@ -100,7 +99,7 @@ def stworz_html(dane1, dane2):
 
 def sprawdz_pliki():
     """"Sprawdza czy wszystkie wymagane pliki istnieją"""
-    wymagane_pliki = ['szablon.html', 'style.css', 'wykresy.py', 'raporcik2.py']
+    wymagane_pliki = ['szablon.html', 'style.css', 'report_part1.py', 'report_part2.py']
     brakujace = []
     
     for plik in wymagane_pliki:
@@ -165,7 +164,7 @@ def generuj_pdf(nazwa_pliku="raport.pdf"):
 
 def main():
     """Funkcja główna"""
-    sukces = generuj_pdf("moj_raport.pdf")
+    sukces = generuj_pdf("Lista1.pdf")
     
     if sukces:
         print("\n" + "=" * 60)
