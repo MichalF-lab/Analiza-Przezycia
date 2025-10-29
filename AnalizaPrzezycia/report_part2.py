@@ -51,6 +51,7 @@ def stats_type2(data, m):
         'n': len(data),
         'n_complete': m,
         'censoring_value': data[m],
+        'max_time': np.max(data),
         'median': np.median(complete)
     }
 

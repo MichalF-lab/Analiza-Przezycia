@@ -74,6 +74,7 @@ def stworz_html(dane1, dane2):
     html = html.replace('{{D2N}}', str(dane2["dane2"]['n']))
     html = html.replace('{{D2NC}}', str(dane2["dane2"]['n_complete']))
     html = html.replace('{{D2CV}}', f'{dane2["dane2"]["censoring_value"]:.4f}')
+    html = html.replace('{{D2M}}', f'{dane2["dane1"]["max_time"]:.4f}')
     html = html.replace('{{D2MED}}', f'{dane2["dane2"]["median"]:.4f}')
 
     # Cenzurowanie losowe
