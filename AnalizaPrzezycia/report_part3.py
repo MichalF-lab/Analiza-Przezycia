@@ -1,6 +1,5 @@
 from math import gamma
 import numpy as np
-from numpy.random import seed
 from scipy.stats import beta, gamma
 from report_part2 import first_type_error
 # from report_part1 import wzor_do_base64
@@ -59,8 +58,8 @@ def estimator_type1(data):
     data_uncenzored = data[:m]
     return len(data_uncenzored) / (np.sum(data_uncenzored) + (len(data) - len(data_uncenzored)))
 
-print(f'Estymator leku A: {estimator_type1(A)}') #0.70
-print(f'Estymator leku B: {estimator_type1(B)}') #0.74
+#print(f'Estymator leku A: {estimator_type1(A)}') #0.70
+#print(f'Estymator leku B: {estimator_type1(B)}') #0.74
 
 
 #print(f'L_A: {L_A1}')
@@ -77,10 +76,10 @@ def confidence_interval_type1(data, alpha, t0=1.0):
 
     return theta_L, theta_U
 
-print(confidence_interval_type1(A, 0.05)) #0.76 #3.15
-print(confidence_interval_type1(B, 0.05))
-print(confidence_interval_type1(A, 0.01))
-print(confidence_interval_type1(B, 0.01))
+#print(confidence_interval_type1(A, 0.05)) #0.76 #3.15
+#print(confidence_interval_type1(B, 0.05))
+#print(confidence_interval_type1(A, 0.01))
+#print(confidence_interval_type1(B, 0.01))
 
 # binom.confint(x,n,conflevel = 1-alpha, method = 'exact')
 # do przedzialu ufności
@@ -95,8 +94,8 @@ def estimator_type2(data):
     data_uncenzored = data[:m]
     return m / (np.sum(data_uncenzored) + ((n - m)*data_uncenzored[-1]))
 
-print(f'Estymator leku A cenzored: {estimator_type2(A)}') #0.73
-print(f'Estymator leku B cenzored: {estimator_type2(B)}') #0.96
+#print(f'Estymator leku A cenzored: {estimator_type2(A)}') #0.73
+#print(f'Estymator leku B cenzored: {estimator_type2(B)}') #0.96
 
 #n = 20
 #m = 10
@@ -127,10 +126,10 @@ def confidence_interval_type2(data, alpha, t0 =1.0):
 
     return theta_L, theta_U
 
-print(confidence_interval_type2(A, 0.05))
-print(confidence_interval_type2(B, 0.05))
-print(confidence_interval_type2(A, 0.01))
-print(confidence_interval_type2(B, 0.01))
+#print(confidence_interval_type2(A, 0.05))
+#print(confidence_interval_type2(B, 0.05))
+#print(confidence_interval_type2(A, 0.01))
+#print(confidence_interval_type2(B, 0.01))
 
 np.random.seed(42)
 temp1 = first_type_error(0.5, n=10)
@@ -158,7 +157,7 @@ bias5 = Bias_variance(estimator_type1(temp3), 1.2)
 bias6 = Bias_variance(estimator_type2(temp3), 1.2)
 bias7 = Bias_variance(estimator_type1(temp4), 1.2)
 bias8 = Bias_variance(estimator_type2(temp4), 1.2)
-print(f'bias1: {bias1}, bias2: {bias2}, bias3: {bias3}, bias4: {bias4}, bias5: {bias5}, bias6: {bias6}, bias7: {bias7}, bias8: {bias8}')
+# print(f'bias1: {bias1}, bias2: {bias2}, bias3: {bias3}, bias4: {bias4}, bias5: {bias5}, bias6: {bias6}, bias7: {bias7}, bias8: {bias8}')
 
 mse1 = MSE(estimator_type1(temp1), temp1, 0.5)
 mse2 = MSE(estimator_type2(temp1), temp1, 0.5)
@@ -168,7 +167,45 @@ mse5 = MSE(estimator_type1(temp3), temp3, 1.2)
 mse6 = MSE(estimator_type2(temp3), temp3, 1.2)
 mse7 = MSE(estimator_type1(temp4), temp4, 1.2)
 mse8 = MSE(estimator_type2(temp4), temp4, 1.2)
-print(f'mse1: {mse1}, mse2: {mse2}, mse3: {mse3}, mse4: {mse4}, mse5: {mse5}, mse6: {mse6}, mse7: {mse7}, mse8: {mse8}')
+# print(f'mse1: {mse1}, mse2: {mse2}, mse3: {mse3}, mse4: {mse4}, mse5: {mse5}, mse6: {mse6}, mse7: {mse7}, mse8: {mse8}')
 
+
+def przeslij_dane3():
+    """
+    Główna funkcja zwracająca dane z raport_part3
+    """
+    
+    print("\n📈 Dane zad3 - estymatory:")
+    
+    return {
+        'est_A_type1': estimator_type1(A),
+        'est_B_type1': estimator_type1(B),
+        'est_A_type2': estimator_type2(A),
+        'est_B_type2': estimator_type2(B),
+        'ci_A_005': confidence_interval_type1(A, 0.05),
+        'ci_B_005': confidence_interval_type1(B, 0.05),
+        'ci_A_001': confidence_interval_type1(A, 0.01),
+        'ci_B_001': confidence_interval_type1(B, 0.01),
+        'ci2_A_005': confidence_interval_type2(A, 0.05),
+        'ci2_B_005': confidence_interval_type2(B, 0.05),
+        'ci2_A_001': confidence_interval_type2(A, 0.01),
+        'ci2_B_001': confidence_interval_type2(B, 0.01),
+        'bias1': bias1,
+        'bias2': bias2,
+        'bias3': bias3,
+        'bias4': bias4,
+        'bias5': bias5,
+        'bias6': bias6,
+        'bias7': bias7,
+        'bias8': bias8,
+        'mse1': mse1,
+        'mse2': mse2,
+        'mse3': mse3,
+        'mse4': mse4,
+        'mse5': mse5,
+        'mse6': mse6,
+        'mse7': mse7,
+        'mse8': mse8
+    }
 
 

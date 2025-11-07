@@ -8,6 +8,8 @@ from datetime import datetime
 import os
 from report_part1 import przeslij_dane1
 from report_part2 import przeslij_dane2
+from report_part3 import przeslij_dane3
+from report_part4 import przeslij_dane4
 
 
 
@@ -25,7 +27,7 @@ def wczytaj_plik(nazwa_pliku, encoding='utf-8'):
         return None
     
 
-def stworz_html(dane1, dane2):
+def stworz_html(dane1, dane2, dane3, dane4):
     """Tworzy kompletny HTML z danymi"""
     template = wczytaj_plik('szablon.html')
     if not template:
@@ -69,12 +71,12 @@ def stworz_html(dane1, dane2):
     html = html.replace('{{D1NC}}', str(dane2["dane1"]['n_complete']))
     html = html.replace('{{D1M}}', f'{dane2["dane1"]["min_time"]:.4f}')
     html = html.replace('{{D1MED}}', f'{dane2["dane1"]["median"]:.4f}')
+    html = html.replace('{{DAQ}}', f'{dane2["dane1"]["Q"]:.4f}')
 
     # Cenzurowanie typu II
     html = html.replace('{{D2N}}', str(dane2["dane2"]['n']))
     html = html.replace('{{D2NC}}', str(dane2["dane2"]['n_complete']))
     html = html.replace('{{D2CV}}', f'{dane2["dane2"]["censoring_value"]:.4f}')
-    html = html.replace('{{D2M}}', f'{dane2["dane1"]["max_time"]:.4f}')
     html = html.replace('{{D2MED}}', f'{dane2["dane2"]["median"]:.4f}')
 
     # Cenzurowanie losowe
@@ -83,24 +85,113 @@ def stworz_html(dane1, dane2):
     html = html.replace('{{D3NCEN}}', str(dane2["dane3"]['n_censored']))
     html = html.replace('{{D3MIN}}', f'{dane2["dane3"]["min_time"]:.4f}')
     html = html.replace('{{D3MAX}}', f'{dane2["dane3"]["max_time"]:.4f}')
-    html = html.replace('{{D3MED}}', f'{dane2["dane3"]["median_time"]:.4f}')
 
     # Porównanie leków A i B
     html = html.replace('{{DAN}}', str(dane2["daneA"]['n']))
     html = html.replace('{{DANC}}', str(dane2["daneA"]['n_complete']))
     html = html.replace('{{DAM}}', f'{dane2["daneA"]["min_time"]:.4f}')
     html = html.replace('{{DAMED}}', f'{dane2["daneA"]["median"]:.4f}')
+    html = html.replace('{{DAMED}}', f'{dane2["daneA"]["median"]:.4f}')
 
     html = html.replace('{{DBN}}', str(dane2["daneB"]['n']))
     html = html.replace('{{DBNC}}', str(dane2["daneB"]['n_complete']))
     html = html.replace('{{DBM}}', f'{dane2["daneB"]["min_time"]:.4f}')
     html = html.replace('{{DBMED}}', f'{dane2["daneB"]["median"]:.4f}')
+    html = html.replace('{{DBQ}}', f'{dane2["daneB"]["Q"]:.4f}')
+
+    # Lista3
+    html = html.replace('{{EST_A_TYPE1}}', f'{dane3["est_A_type1"]:.4f}')
+    html = html.replace('{{EST_B_TYPE1}}', f'{dane3["est_B_type1"]:.4f}')
+    
+    # Przedziały ufności typ I (α=0.05)
+    html = html.replace('{{CI_A_005_L}}', f'{dane3["ci_A_005"][0]:.4f}')
+    html = html.replace('{{CI_A_005_U}}', f'{dane3["ci_A_005"][1]:.4f}')
+    html = html.replace('{{CI_B_005_L}}', f'{dane3["ci_B_005"][0]:.4f}')
+    html = html.replace('{{CI_B_005_U}}', f'{dane3["ci_B_005"][1]:.4f}')
+    
+    # Przedziały ufności typ I (α=0.01)
+    html = html.replace('{{CI_A_001_L}}', f'{dane3["ci_A_001"][0]:.4f}')
+    html = html.replace('{{CI_A_001_U}}', f'{dane3["ci_A_001"][1]:.4f}')
+    html = html.replace('{{CI_B_001_L}}', f'{dane3["ci_B_001"][0]:.4f}')
+    html = html.replace('{{CI_B_001_U}}', f'{dane3["ci_B_001"][1]:.4f}')
+    
+    # Estymatory typ II
+    html = html.replace('{{EST_A_TYPE2}}', f'{dane3["est_A_type2"]:.4f}')
+    html = html.replace('{{EST_B_TYPE2}}', f'{dane3["est_B_type2"]:.4f}')
+    
+    # Przedziały ufności typ II (α=0.05)
+    html = html.replace('{{CI2_A_005_L}}', f'{dane3["ci2_A_005"][0]:.4f}')
+    html = html.replace('{{CI2_A_005_U}}', f'{dane3["ci2_A_005"][1]:.4f}')
+    html = html.replace('{{CI2_B_005_L}}', f'{dane3["ci2_B_005"][0]:.4f}')
+    html = html.replace('{{CI2_B_005_U}}', f'{dane3["ci2_B_005"][1]:.4f}')
+    
+    # Przedziały ufności typ II (α=0.01)
+    html = html.replace('{{CI2_A_001_L}}', f'{dane3["ci2_A_001"][0]:.4f}')
+    html = html.replace('{{CI2_A_001_U}}', f'{dane3["ci2_A_001"][1]:.4f}')
+    html = html.replace('{{CI2_B_001_L}}', f'{dane3["ci2_B_001"][0]:.4f}')
+    html = html.replace('{{CI2_B_001_U}}', f'{dane3["ci2_B_001"][1]:.4f}')
+    
+    # Bias
+    for i in range(1, 9):
+        html = html.replace(f'{{{{BIAS{i}}}}}', f'{dane3[f"bias{i}"]:.6f}')
+    
+    # MSE
+    for i in range(1, 9):
+        html = html.replace(f'{{{{MSE{i}}}}}', f'{dane3[f"mse{i}"]:.6f}')
+    
+
+    # Parametry testu
+    html = html.replace('{{THETA0}}', f'{dane4["theta0"]:.1f}')
+    html = html.replace('{{N1}}', str(dane4["n1"]))
+    html = html.replace('{{N2}}', str(dane4["n2"]))
+    html = html.replace('{{N_SIMULATIONS}}', str(dane4["N"]))
+    
+    # Moce testów dla n=20
+    html = html.replace('{{MOC_N20_0_8_A}}', f'{dane4["moce_n20"]["0.8_a"]:.4f}')
+    html = html.replace('{{MOC_N20_1_2_A}}', f'{dane4["moce_n20"]["1.2_a"]:.4f}')
+    html = html.replace('{{MOC_N20_1_8_A}}', f'{dane4["moce_n20"]["1.8_a"]:.4f}')
+    html = html.replace('{{MOC_N20_2_1_A}}', f'{dane4["moce_n20"]["2.1_a"]:.4f}')
+    
+    html = html.replace('{{MOC_N20_1_5_B}}', f'{dane4["moce_n20"]["1.5_b"]:.4f}')
+    html = html.replace('{{MOC_N20_2_0_B}}', f'{dane4["moce_n20"]["2.0_b"]:.4f}')
+    html = html.replace('{{MOC_N20_2_2_B}}', f'{dane4["moce_n20"]["2.2_b"]:.4f}')
+    
+    html = html.replace('{{MOC_N20_3_0_C}}', f'{dane4["moce_n20"]["3.0_c"]:.4f}')
+    html = html.replace('{{MOC_N20_2_2_C}}', f'{dane4["moce_n20"]["2.2_c"]:.4f}')
+    html = html.replace('{{MOC_N20_2_1_C}}', f'{dane4["moce_n20"]["2.1_c"]:.4f}')
+    
+    # Moce testów dla n=50
+    html = html.replace('{{MOC_N50_0_8_A}}', f'{dane4["moce_n50"]["0.8_a"]:.4f}')
+    html = html.replace('{{MOC_N50_1_2_A}}', f'{dane4["moce_n50"]["1.2_a"]:.4f}')
+    html = html.replace('{{MOC_N50_1_8_A}}', f'{dane4["moce_n50"]["1.8_a"]:.4f}')
+    html = html.replace('{{MOC_N50_2_1_A}}', f'{dane4["moce_n50"]["2.1_a"]:.4f}')
+    
+    html = html.replace('{{MOC_N50_1_5_B}}', f'{dane4["moce_n50"]["1.5_b"]:.4f}')
+    html = html.replace('{{MOC_N50_2_0_B}}', f'{dane4["moce_n50"]["2.0_b"]:.4f}')
+    html = html.replace('{{MOC_N50_2_2_B}}', f'{dane4["moce_n50"]["2.2_b"]:.4f}')
+    
+    html = html.replace('{{MOC_N50_3_0_C}}', f'{dane4["moce_n50"]["3.0_c"]:.4f}')
+    html = html.replace('{{MOC_N50_2_2_C}}', f'{dane4["moce_n50"]["2.2_c"]:.4f}')
+    html = html.replace('{{MOC_N50_2_1_C}}', f'{dane4["moce_n50"]["2.1_c"]:.4f}')
+    
+    # p-values i decyzje dla leków
+    html = html.replace('{{P_VALUE_A}}', f'{dane4["p_value_A"]:.6f}')
+    html = html.replace('{{P_VALUE_B}}', f'{dane4["p_value_B"]:.6f}')
+    
+    decision_A = "Odrzucamy H₀" if dane4["p_value_A"] < 0.05 else "Nie odrzucamy H₀"
+    decision_B = "Odrzucamy H₀" if dane4["p_value_B"] < 0.05 else "Nie odrzucamy H₀"
+    html = html.replace('{{DECISION_A}}', decision_A)
+    html = html.replace('{{DECISION_B}}', decision_B)
     
     return html
 
+
+    return html
+
+
 def sprawdz_pliki():
     """"Sprawdza czy wszystkie wymagane pliki istnieją"""
-    wymagane_pliki = ['szablon.html', 'style.css', 'report_part1.py', 'report_part2.py']
+    wymagane_pliki = ['szablon.html', 'style.css', 'report_part1.py', 'report_part2.py', 'report_part3.py', 'report_part4.py']
     brakujace = []
     
     for plik in wymagane_pliki:
@@ -140,8 +231,22 @@ def generuj_pdf(nazwa_pliku="raport.pdf"):
         print(f"❌ Błąd generowania danych: {e}")
         return False
 
+        print("\n🔧 Generowanie danych lista3...")
+    try:
+        dane3 = przeslij_dane3()
+    except Exception as e:
+        print(f"❌ Błąd generowania danych: {e}")
+        return False
+
+    print("\n🔧 Generowanie danych lista4...")
+    try:
+        dane4 = przeslij_dane4()
+    except Exception as e:
+        print(f"❌ Błąd generowania danych: {e}")
+        return False
+
     print("📄 Ładowanie szablonu HTML...")
-    html_content = stworz_html(dane1, dane2)
+    html_content = stworz_html(dane1, dane2, dane3, dane4)
     if not html_content:
         return False
     

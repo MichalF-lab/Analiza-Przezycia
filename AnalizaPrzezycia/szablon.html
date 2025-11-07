@@ -74,7 +74,16 @@
     </div>
 
     <div class="section">
-        <h2>2. Wizualizacja funkcji hazardu</h2>
+        <h2>1.2. Wizualizacja funkcji hazardu</h2>
+        <p>
+            Funkcja hazardu przedstawia chwilową intensywność zajścia zdarzenia (np. awarii, zgonu)
+            w danym momencie czasu, przy założeniu że zdarzenie nie zaszło wcześniej. Na poniższym
+            wykresie możemy zaobserwować, jak różne kombinacje parametrów α, β i γ wpływają na kształt
+            funkcji hazardu. Rosnąca funkcja hazardu sugeruje, że ryzyko zdarzenia wzrasta z czasem
+            (starzenie się), podczas gdy malejąca funkcja wskazuje na zmniejszające się ryzyko
+            (efekt wczesnej selekcji). Funkcja stała odpowiada rozkładowi wykładniczemu, gdzie
+            ryzyko jest niezależne od czasu.
+        </p>
         <div class="chart-container">
             <img src="{{WYKRES1}}" alt="Wykres funkcji hazardu">
         </div>
@@ -82,10 +91,10 @@
 
 
 
-
-    <!-- SEKCJA 2: KOD ŹRÓDŁOWY -->
     <div class="section">
-        <h2>3. Generowanie zmiennych losowych</h2>
+        <h2>1.3 Generowanie zmiennych losowych</h2>
+
+        <p>Korzystamy z próbek z rozkładu wykładniczego</p>
 
         <div class="code-block">
             <div class="code-header">Program do generowania zmiennych</div>
@@ -103,11 +112,19 @@
 
     <!-- SEKCJA 3: WIZUALIZACJE -->
     <div class="section">
-        <h2>4. Wizualizacje danych</h2>
+        <h2>1.4 Wizualizacje próby</h2>
 
-        <h3>Wykresy próbkowe</h3>
+        <h4>Wykresy próbkowe</h4>
         <p>
-            Porównanie teoretycznych wartości rozkładu z próbą losową
+        <p>
+            Poniższy wykres przedstawia porównanie empirycznych rozkładów wygenerowanych próbek
+            z teoretycznymi funkcjami gęstości rozkładu Weibulla. Histogramy pokazują częstość
+            występowania wartości w próbie, podczas gdy linie ciągłe reprezentują wartości teoretyczne.
+            Dobra zgodność między histogramami a krzywymi teoretycznymi potwierdza poprawność
+            implementacji generatora liczb pseudolosowych. Zauważmy, że większe próby (n=100)
+            wykazują lepsze dopasowanie do rozkładu teoretycznego niż próby mniejsze (n=50),
+            co jest zgodne z prawem wielkich liczb.
+        </p>
         </p>
         <div class="chart-container">
             <img src="{{WYKRES2}}" alt="Wykres sprzedaży miesięcznej">
@@ -116,7 +133,7 @@
 
     <!-- SEKCJA 4: WYNIKI -->
     <div class="section">
-        <h2>5. Wyniki analizy statystycznej</h2>
+        <h2>1.5 Wyniki analizy statystycznej</h2>
         <p>
             Tabela prezentuje podstawowe statystyki opisowe dla czterech prób oraz odpowiadające im wartości teoretyczne oparte na rozkładach Weibulla (EW) z parametrami α, β i γ.
         </p>
@@ -211,7 +228,7 @@
 
     <!-- SEKCJA 2.1:  -->
     <div class="section">
-        <h2>1. Uogólniony rozkład wykładniczy GE(λ, α)</h2>
+        <h1>2 Uogólniony rozkład wykładniczy GE(λ, α)</h1>
 
         <p>Rozważamy zmienną losową <strong>X ∼ GE(λ, α)</strong>, gdzie:</p>
         <ul>
@@ -220,140 +237,595 @@
         </ul>
 
         <div class="chart-container">
-            <h3>Funkcja gęstości:</h3>
+            <h2>Funkcja gęstości:</h2>
             <p>
                 <img class="formula" src="{{WZOR_PDF}}" alt="Funkcja gęstości (PDF)">
             </p>
         </div>
 
-        <h2>2. Generowanie danych cenzurowanych</h2>
+        <h2>2.1 Generowanie danych cenzurowanych</h2>
 
-        <h3>(a) Cenzurowanie I-go typu</h3>
-        <p>Dane cenzurowane przy czasie obserwacji t0.</p>
+        <h4>Cenzurowanie I-go typu</h4>
+        <p>
+            W cenzurowaniu typu I wszystkie obserwacje są monitorowane do z góry ustalonego czasu t₀.
+            Obserwacje, które nie zakończyły się zdarzeniem przed tym czasem, są cenzurowane
+        </p>
+
         <div class="code-block">
             <pre><code>
-  def first_type_error(t0, n = 10, lambdaa = 1, alpha = 1):
-    ext = [dexp(lambdaa, alpha) for _ in range(n)]
-    for i in range(len(ext)):
-        if ext[i] > t0:
-            ext[i] = t0
-    return ext
-            </code></pre>
+     def first_type_error(t0, n = 10, lambdaa = 1, alpha = 1):
+       ext = [dexp(lambdaa, alpha) for _ in range(n)]
+       for i in range(len(ext)):
+           if ext[i] > t0:
+               ext[i] = t0
+       return ext
+               </code></pre>
         </div>
         <br><br><br><br><br><br>
 
 
-        <h3>(b) Cenzurowanie II-go typu</h3>
-        <p>Cenzurujemy po uzyskaniu m niecenzurowanych obserwacji.</p>
-        <div class="code-block">
-            <pre><code>
-  def second_type_error(m, n = 10, lambdaa = 1, alpha = 1):
-    ext = [dexp(lambdaa, alpha) for _ in range(n)]
-    ext.sort()
-    ext = ext[:m]
-    ext += [max(ext) for _ in range(n - m)]
-    return ext
-            </code></pre>
-        </div>
-
-        <h3>(c) Cenzurowanie losowe niezależne</h3>
-        <p>Czas cenzurowania ma rozkład wykładniczy λ.</p>
-        <div class="code-block">
-            <pre><code>
- def random_type_error(eta, n = 10, lambdaa = 1, alpha = 1):
-    ext = [dexp(lambdaa, alpha) for _ in range(n)]
-    ext2 = [np.random.exponential(scale=eta) for _ in range(n)]
-    ext3 = []
-    for i in range(len(ext)):
-        if ext[i] > ext2[i]:
-            ext3.append((ext[i], 1))
-        else:
-            ext3.append((ext2[i], 0))
-    return ext3
-            </code></pre>
-        </div>
-    </div>
-    <br><br><br><br><br><br>
-    <div class="code-block">
-        <pre><code>
-    n = 20
-    lambdaa = 1.5
-    alpha = 2.0
-        </code></pre>
-    </div>
-    <div class="section">
-        <h2>1️⃣ Cenzurowanie typu I</h2>
-        <table>
-            <tr><th>Parametr</th><th>Wartość</th></tr>
-            <tr><td>n</td><td>{{D1N}}</td></tr>
-            <tr><td>Liczba pełnych obserwacji</td><td>{{D1NC}}</td></tr>
-            <tr><td>Pierwsza obserwacja</td><td>{{D1M}}</td></tr>
-            <tr><td>Mediana</td><td>{{D1MED}}</td></tr>
-        </table>
-    </div>
-    <div class="section">
-        <h2>2️⃣ Cenzurowanie typu II</h2>
-        <table>
-            <tr><th>Parametr</th><th>Wartość</th></tr>
-            <tr><td>n</td><td>{{D2N}}</td></tr>
-            <tr><td>Liczba pełnych obserwacji (m)</td><td>{{D2NC}}</td></tr>
-            <tr><td>Wartość cenzurowania</td><td>{{D2CV}}</td></tr>
-            <tr><td>Ostatnia obserwacja</td><td>{{D1M}}</td></tr>
-            <tr><td>Mediana</td><td>{{D2MED}}</td></tr>
-        </table>
-    </div>
-    <div class="section">
-        <h2>3️⃣ Cenzurowanie losowe</h2>
-        <table>
-            <tr><th>Parametr</th><th>Wartość</th></tr>
-            <tr><td>n</td><td>{{D3N}}</td></tr>
-            <tr><td>Liczba pełnych</td><td>{{D3NC}}</td></tr>
-            <tr><td>Liczba ocenzurowanych</td><td>{{D3NCEN}}</td></tr>
-            <tr><td>Min czas</td><td>{{D3MIN}}</td></tr>
-            <tr><td>Max czas</td><td>{{D3MAX}}</td></tr>
-            <tr><td>Mediana czasu</td><td>{{D3MED}}</td></tr>
-        </table>
-    </div>
-    <div class="section">
-        <h2>💊 Porównanie leków A i B</h2>
-        <table>
-            <tr><th>Statystyka</th><th>Lek A</th><th>Lek B</th></tr>
-            <tr><td>Liczba obserwacji</td><td>{{DAN}}</td><td>{{DBN}}</td></tr>
-            <tr><td>Liczba pełnych</td><td>{{DANC}}</td><td>{{DBNC}}</td></tr>
-            <tr><td>Pierwsza obserwacja</td><td>{{DAM}}</td><td>{{DBM}}</td></tr>
-            <tr><td>Mediana</td><td>{{DAMED}}</td><td>{{DBMED}}</td></tr>
-        </table>
-    </div>
-
-    <!-- SEKCJA 5: PODSUMOWANIE -->
-    <div class="section">
-        <h2>5. Wnioski i podsumowanie</h2>
+        <h4>Cenzurowanie II-go typu</h4>
         <p>
-            Przeprowadzona analiza wykazała następujące kluczowe obserwacje:
+            Cenzurowanie typu II kończy badanie po uzyskaniu z góry ustalonej liczby m zdarzeń.</p>
+        <div class="code-block">
+            <pre><code>
+     def second_type_error(m, n = 10, lambdaa = 1, alpha = 1):
+       ext = [dexp(lambdaa, alpha) for _ in range(n)]
+       ext.sort()
+       ext = ext[:m]
+       ext += [max(ext) for _ in range(n - m)]
+       return ext
+               </code></pre>
+        </div>
+
+        <h4>Cenzurowanie losowe niezależne</h4>
+        <p>
+            W cenzurowaniu losowym każdy pacjent ma własny, losowy czas cenzurowania, który jest
+            niezależny od czasu do zdarzenia.
         </p>
-        <ul>
-            <li>Dane wykazują rozkład zbliżony do normalnego z niewielką asymetrią</li>
-            <li>Wartości mieszczą się w oczekiwanym zakresie od 52 do 146 jednostek</li>
-            <li>Odchylenie standardowe wynoszące 14.92 wskazuje na umiarkowane rozproszenie danych</li>
-            <li>Brak wartości odstających lub anomalii w zbiorze danych</li>
-        </ul>
-
-        <div class="info-box">
-            <strong>⚠ Uwaga:</strong> Niniejszy raport został wygenerowany automatycznie
-            i wymaga weryfikacji przez uprawnionego analityka. Wszystkie wartości są przykładowe
-            i służą wyłącznie celom demonstracyjnym.
-        </div>
-
-        <div class="success-box">
-            <strong>✓ Zalecenia:</strong> Zaleca się przeprowadzenie dodatkowej analizy
-            dla potwierdzenia wyników oraz rozszerzenie badania o dodatkowe zmienne.
+        <div class="code-block">
+            <pre><code>
+    def random_type_error(eta, n = 10, lambdaa = 1, alpha = 1):
+       ext = [dexp(lambdaa, alpha) for _ in range(n)]
+       ext2 = [np.random.exponential(scale=eta) for _ in range(n)]
+       ext3 = []
+       for i in range(len(ext)):
+           if ext[i] > ext2[i]:
+               ext3.append((ext[i], 1))
+           else:
+               ext3.append((ext2[i], 0))
+       return ext3
+               </code></pre>
         </div>
     </div>
+       <br><br><br><br><br><br><br><br>
+       <div class="section">
+           <div class="section">
+               <h2>2.2 Statystyki</h2>
+               <h4>Parametry</h4>
+               <bold>
+                   n = 20<br>
+                   lambda = 1.5<br>
+                   alpha = 2.0<br>
+               </bold>
+           </div>
+           <p>
+               W każdym przypadku część obserwacji została ocenzurowana
+               W tej próbie liczba pełnych obserwacji była wysoka (16 z 20), co oznacza niski poziom cenzurowania.
+               W przypadku cenzurowania losowego stopień ocenzurowania jest znacznie wyższy (13 z 20 obserwacji
+               W danych dotyczących cenzurowania typu II również widać umiarkowany poziom cenzurowania oraz zbliżoną medianę do pierwszego przypadku
+           </p>
+           <h2>1️⃣ Cenzurowanie typu I</h2>
+           <table>
+               <tr><th>Parametr</th><th>Wartość</th></tr>
+               <tr><td>n</td><td>{{D1N}}</td></tr>
+               <tr><td>Liczba pełnych obserwacji</td><td>{{D1NC}}</td></tr>
+               <tr><td>Pierwsza obserwacja</td><td>{{D1M}}</td></tr>
+               <tr><td>Mediana</td><td>{{D1MED}}</td></tr>
+               <tr><td>Q1</td><td>{{DQ1}}</td></tr>
+               <tr><td>Q1</td><td>{{DQ1}}</td></tr>
+           </table>
+       </div>
+       <div class="section">
+           <h2>2️⃣ Cenzurowanie typu II</h2>
+           <table>
+               <tr><th>Parametr</th><th>Wartość</th></tr>
+               <tr><td>n</td><td>{{D2N}}</td></tr>
+               <tr><td>Liczba pełnych obserwacji (m)</td><td>{{D2NC}}</td></tr>
+               <tr><td>Wartość cenzurowania</td><td>{{D2CV}}</td></tr>
+               <tr><td>Ostatnia obserwacja</td><td>{{D1M}}</td></tr>
+               <tr><td>Mediana</td><td>{{D2MED}}</td></tr>
+           </table>
+       </div>
+       <div class="section">
+           <h2>3️⃣ Cenzurowanie losowe</h2>
+           <table>
+               <tr><th>Parametr</th><th>Wartość</th></tr>
+               <tr><td>n</td><td>{{D3N}}</td></tr>
+               <tr><td>Liczba pełnych</td><td>{{D3NC}}</td></tr>
+               <tr><td>Liczba ocenzurowanych</td><td>{{D3NCEN}}</td></tr>
+               <tr><td>Min czas</td><td>{{D3MIN}}</td></tr>
+               <tr><td>Max czas</td><td>{{D3MAX}}</td></tr>
+               <tr><td>Mediana czasu</td><td>{{D3MED}}</td></tr>
+           </table>
+       </div>
+       <h2>2.3 Porównanie leków</h2>
+       <div class="section">
+           <h2>💊 Porównanie leków A i B</h2>
+           <p>
+               NIe widać większych rózńic między lekami A i B na podstawie podstawowych statystyk opisowych.
+           </p>
+           <table>
+               <tr><th>Statystyka</th><th>Lek A</th><th>Lek B</th></tr>
+               <tr><td>Liczba obserwacji</td><td>{{DAN}}</td><td>{{DBN}}</td></tr>
+               <tr><td>Liczba pełnych</td><td>{{DANC}}</td><td>{{DBNC}}</td></tr>
+               <tr><td>Pierwsza obserwacja</td><td>{{DAM}}</td><td>{{DBM}}</td></tr>
+               <tr><td>Mediana</td><td>{{DAMED}}</td><td>{{DBMED}}</td></tr>
+               <tr><td>Q1</td><td>{{DAQ}}</td><td>{{DBQ}}</td></tr>
+           </table>
+       </div>
 
-    <!-- STOPKA -->
-    <div class="footer">
-        <p>© 2025 | Raport wygenerowany automatycznie | Generator PDF v1.0</p>
-        <p>Dokument poufny - do użytku wewnętrznego</p>
-    </div>
-</body>
-</html>
+       <!-- SEKCJA 3: ESTYMATORY I PRZEDZIAŁY UFNOŚCI -->
+       <div class="section">
+           <h2>3. Estymacja parametrów</h2>
+
+           <h2>3.1A Estymatory dla cenzurowania typu I</h2>
+           <p>
+               Estymator parametru intensywności λ dla danych cenzurowanych typu I uwzględnia zarówno
+               liczbę zaobserwowanych zdarzeń, jak i całkowity czas obserwacji. Wyższe wartości
+               estymatora wskazują na większą intensywność zdarzenia, czyli krótszy oczekiwany czas
+               do remisji.
+           </p>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Lek</th>
+                       <th>Estymator λ</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>Lek A</td>
+                       <td>{{EST_A_TYPE1}}</td>
+                   </tr>
+                   <tr>
+                       <td>Lek B</td>
+                       <td>{{EST_B_TYPE1}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h2>
+               3.1B Przedziały ufności dla typu I (α = 0.05)
+           </h2>
+           <p>
+               Przedział ufności na poziomie 95% dla parametru λ informuje nas, w jakim zakresie
+               z prawdopodobieństwem 0.95 znajduje się prawdziwa wartość parametru.
+           </p>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Lek</th>
+                       <th>Dolna granica</th>
+                       <th>Górna granica</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>Lek A</td>
+                       <td>{{CI_A_005_L}}</td>
+                       <td>{{CI_A_005_U}}</td>
+                   </tr>
+                   <tr>
+                       <td>Lek B</td>
+                       <td>{{CI_B_005_L}}</td>
+                       <td>{{CI_B_005_U}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h4>Przedziały ufności dla typu I (α = 0.01)</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Lek</th>
+                       <th>Dolna granica</th>
+                       <th>Górna granica</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>Lek A</td>
+                       <td>{{CI_A_001_L}}</td>
+                       <td>{{CI_A_001_U}}</td>
+                   </tr>
+                   <tr>
+                       <td>Lek B</td>
+                       <td>{{CI_B_001_L}}</td>
+                       <td>{{CI_B_001_U}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h2>3.2 Estymatory dla cenzurowania typu II</h2>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Lek</th>
+                       <th>Estymator λ</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>Lek A</td>
+                       <td>{{EST_A_TYPE2}}</td>
+                   </tr>
+                   <tr>
+                       <td>Lek B</td>
+                       <td>{{EST_B_TYPE2}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h4> Przedziały ufności dla typu II (α = 0.05)</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Lek</th>
+                       <th>Dolna granica</th>
+                       <th>Górna granica</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>Lek A</td>
+                       <td>{{CI2_A_005_L}}</td>
+                       <td>{{CI2_A_005_U}}</td>
+                   </tr>
+                   <tr>
+                       <td>Lek B</td>
+                       <td>{{CI2_B_005_L}}</td>
+                       <td>{{CI2_B_005_U}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h4>Przedziały ufności dla typu II (α = 0.01)</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Lek</th>
+                       <th>Dolna granica</th>
+                       <th>Górna granica</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>Lek A</td>
+                       <td>{{CI2_A_001_L}}</td>
+                       <td>{{CI2_A_001_U}}</td>
+                   </tr>
+                   <tr>
+                       <td>Lek B</td>
+                       <td>{{CI2_B_001_L}}</td>
+                       <td>{{CI2_B_001_U}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <br><br><br><br><br><br><br><br>
+           <h2>3.3 Porównanie dokładności estymatorów</h2>
+           <h3>
+               Bias estymatorów
+           </h3>
+           <p>
+               Obciążenie (bias) estymatora mierzy odchylenie wartości oczekiwanej
+               estymatora od prawdziwej wartości parametru. Wartości bliskie zeru wskazują na
+               nieobciążony estymator. Obserwujemy, że bias maleje wraz ze wzrostem
+               wielkości próby. 
+           </p>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Scenariusz</th>
+                       <th>Bias typ I</th>
+                       <th>Bias typ II</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>n=10, t0=0.5</td>
+                       <td>{{BIAS1}}</td>
+                       <td>{{BIAS2}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=30, t0=0.5</td>
+                       <td>{{BIAS3}}</td>
+                       <td>{{BIAS4}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=10, t0=1.2</td>
+                       <td>{{BIAS5}}</td>
+                       <td>{{BIAS6}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=30, t0=1.2</td>
+                       <td>{{BIAS7}}</td>
+                       <td>{{BIAS8}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h3>MSE estymatorów</h3>
+           <p>
+               Niższe wartości MSE oznaczają lepszą
+               jakość estymacji. Zwiększenie rozmiaru próby znacząco redukuje MSE,
+               co pokazuje korzyści płynące z większych badań. Porównanie MSE dla różnych czasów
+               cenzurowania (t₀=0.5 vs t₀=1.2) ilustruje, jak długość okresu obserwacji wpływa
+               na precyzję estymacji - dłuższa obserwacja dostarcza więcej informacji.
+           </p>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Scenariusz</th>
+                       <th>MSE typ I</th>
+                       <th>MSE typ II</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>n=10, t0=0.5</td>
+                       <td>{{MSE1}}</td>
+                       <td>{{MSE2}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=30, t0=0.5</td>
+                       <td>{{MSE3}}</td>
+                       <td>{{MSE4}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=10, t0=1.2</td>
+                       <td>{{MSE5}}</td>
+                       <td>{{MSE6}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=30, t0=1.2</td>
+                       <td>{{MSE7}}</td>
+                       <td>{{MSE8}}</td>
+                   </tr>
+               </tbody>
+           </table>
+       </div>
+
+        <!-- SEKCJA 4: TESTY MOCY -->
+       <div class="section">
+           <h2>4. Test ilorazu wiarygodności</h2>
+           <h3>4.1 Funkcja poziomu krytycznego</h3>
+           <div class="code-block">
+               <pre><code>
+def exp_likelihood_ratio_test(data, theta0):
+    #n = len(data)
+    r = np.sum(data < np.max(data))
+    data = np.sort(data)
+    data_uncenzored = data[:r]
+    s = np.sum(data_uncenzored)
+    #t0 = data_uncenzored[-1]
+    theta_hat = r / s
+
+    def log_likelihood(theta, r, s):
+        if theta <= 0:
+            return -np.inf
+        return r * np.log(theta) - theta * s
+
+
+    log_L_mle = log_likelihood(theta_hat, r, s)
+    log_L_h0 = log_likelihood(theta0, r, s)
+
+    statistic = -2 * (log_L_h0 - log_L_mle)
+    p_value = 1 - stats.chi2.cdf(statistic, df=1)
+
+    return p_value
+
+</code></pre>
+               <br><br><br><br>
+           </div>
+           <h2>Przeprowadzono test ilorazu wiarygodności dla hipotezy H₀: θ = θ₀ przeciwko różnym hipotezom alternatywnym. Parametry symulacji:</h2>
+           <ul>
+               <li>θ₀ = {{THETA0}}</li>
+               <li>Liczba replikacji: N = {{N_SIMULATIONS}}</li>
+               <li>Poziom istotności: α = 0.05</li>
+               <li>Czas cenzurowania: t₀ = 1.5</li>
+           </ul>
+
+           <h3>4.2 Moc testu dla n = {{N1}}</h3>
+           <p>
+               Moc testu to prawdopodobieństwo odrzucenia fałszywej hipotezy zerowej. Wysoka moc
+               oznacza, że test skutecznie wykrywa odstępstwa od H₀, gdy one rzeczywiście
+               występują.
+           </p>
+
+           <h4>Test dwustronny</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>θ</th>
+                       <th>Moc testu</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>0.8</td>
+                       <td>{{MOC_N20_0_8_A}}</td>
+                   </tr>
+                   <tr>
+                       <td>1.2</td>
+                       <td>{{MOC_N20_1_2_A}}</td>
+                   </tr>
+                   <tr>
+                       <td>1.8</td>
+                       <td>{{MOC_N20_1_8_A}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.1</td>
+                       <td>{{MOC_N20_2_1_A}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h4>Test prawostronny: H₁: θ > θ₀</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>θ</th>
+                       <th>Moc testu</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>1.5</td>
+                       <td>{{MOC_N20_1_5_B}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.0</td>
+                       <td>{{MOC_N20_2_0_B}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.2</td>
+                       <td>{{MOC_N20_2_2_B}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h4>Test lewostronny: H₁: θ < θ₀</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>θ</th>
+                       <th>Moc testu</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>3.0</td>
+                       <td>{{MOC_N20_3_0_C}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.2</td>
+                       <td>{{MOC_N20_2_2_C}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.1</td>
+                       <td>{{MOC_N20_2_1_C}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h3>4.2 Moc testu dla n = {{N2}}</h3>
+           <p>
+               Zwiększenie wielkości próby z 20 do 50 obserwacji znacząco poprawia moc testu dla
+               wszystkich rozważanych scenariuszy. 
+           </p>
+
+           <h4>Test dwustronny</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>θ</th>
+                       <th>Moc testu</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>0.8</td>
+                       <td>{{MOC_N50_0_8_A}}</td>
+                   </tr>
+                   <tr>
+                       <td>1.2</td>
+                       <td>{{MOC_N50_1_2_A}}</td>
+                   </tr>
+                   <tr>
+                       <td>1.8</td>
+                       <td>{{MOC_N50_1_8_A}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.1</td>
+                       <td>{{MOC_N50_2_1_A}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h4>Test prawostronny: H₁: θ > θ₀</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>θ</th>
+                       <th>Moc testu</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>1.5</td>
+                       <td>{{MOC_N50_1_5_B}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.0</td>
+                       <td>{{MOC_N50_2_0_B}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.2</td>
+                       <td>{{MOC_N50_2_2_B}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h4>Test lewostronny: H₁: θ < θ₀</h4>
+           <table>
+               <thead>
+                   <tr>
+                       <th>θ</th>
+                       <th>Moc testu</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>3.0</td>
+                       <td>{{MOC_N50_3_0_C}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.2</td>
+                       <td>{{MOC_N50_2_2_C}}</td>
+                   </tr>
+                   <tr>
+                       <td>2.1</td>
+                       <td>{{MOC_N50_2_1_C}}</td>
+                   </tr>
+               </tbody>
+           </table>
+
+           <h3>4.3 Test dla leków A i B (H₀: θ = 1)</h3>
+           <p>
+               W kontekście klinicznym oznacza to, że skuteczność leku istotnie odbiega od H0.
+           </p>
+           <table>
+               <thead>
+                   <tr>
+                       <th>Lek</th>
+                       <th>p-value</th>
+                       <th>Decyzja (α = 0.05)</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td>Lek A</td>
+                       <td>{{P_VALUE_A}}</td>
+                       <td>{{DECISION_A}}</td>
+                   </tr>
+                   <tr>
+                       <td>Lek B</td>
+                       <td>{{P_VALUE_B}}</td>
+                       <td>{{DECISION_B}}</td>
+                   </tr>
+               </tbody>
+           </table>
+       </div>
+

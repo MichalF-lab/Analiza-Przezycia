@@ -43,6 +43,7 @@ def stats_type1(data, t0):
         'n_complete': len(complete),
         'min_time': np.min(data),
         'median': np.median(complete),
+        'Q': np.percentile(data, 25) 
     }
 
 def stats_type2(data, m):
