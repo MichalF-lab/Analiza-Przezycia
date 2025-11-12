@@ -8,7 +8,7 @@ from scipy.stats import alpha
 from sklearn.linear_model import Ridge
 
 class RidgeRegr:
-    def __init__(self, alpha = 0.0):
+    def __init__(self, alpha = 0.2):
         self.alpha = alpha
 
     def fit(self, X, Y, learning_rate = 0.0005):
