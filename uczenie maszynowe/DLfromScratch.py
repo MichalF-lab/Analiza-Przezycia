@@ -81,8 +81,9 @@ def vectorized_result(j):
 
 
 from RidgeRegr import RidgeRegr
+import torch.nn as nn
 
-class Network(object):
+class Network(nn.Module):
 
     def __init__(self, sizes):
         self.num_layers = len(sizes)
@@ -91,13 +92,8 @@ class Network(object):
         self.weights = [np.random.randn(y, x)
                         for x, y in zip(sizes[:-1], sizes[1:])]
 
-    def feedforward(self, a):
-        for b, w in zip(self.biases, self.weights):
-            a = self.sigmoid(np.dot(w, a)+b)
-        return a
 
     def SGD(self, training_data, epochs, mini_batch_size, alpha, test_data=None):
-
         training_data = list(training_data)
         n = len(training_data)
         if test_data:
@@ -108,7 +104,8 @@ class Network(object):
             np.random.shuffle(training_data)
             mini_batches = [
                 training_data[k:k+mini_batch_size]
-                for k in range(0, n, mini_batch_size)]
+                for k in range(0, n, mini_batch_size)
+                ]
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, alpha)
             if test_data:
@@ -117,25 +114,86 @@ class Network(object):
                 print("Epoch {} complete".format(j))
 
     def update_mini_batch(self, mini_batch, alpha):
-
         gradient_b = [np.zeros(b.shape) for b in self.biases]
         gradient_w = [np.zeros(w.shape) for w in self.weights]
 
         for x, y in mini_batch:
+            # o ile ma sie zmienic wagi i biasy
             delta_gradient_b, delta_gradient_w = self.backprop(x, y)
             gradient_b = [nb+dnb for nb, dnb in zip(gradient_b, delta_gradient_b)]
             gradient_w = [nw+dnw for nw, dnw in zip(gradient_w, delta_gradient_w)]
 
-        self.weights = [w-(alpha/len(mini_batch))*nw for w, nw in zip(self.weights, gradient_w)]
+        # zmiana wag i biasow
         self.biases = [b-(alpha/len(mini_batch))*nb for b, nb in zip(self.biases, gradient_b)]
+        self.weights = [w-(alpha/len(mini_batch))*nw for w, nw in zip(self.weights, gradient_w)]
+
+    def feedforward(self, a):
+        for b, w in zip(self.biases, self.weights):
+            a = self.sigmoid(np.dot(w, a)+b)
+        return a
+
 
     def backprop(self, x, y):
         gradient_b = [np.zeros(b.shape) for b in self.biases]
         gradient_w = [np.zeros(w.shape) for w in self.weights]
 
-        #TODO
-          
+        neuron = x
+        neural_network = [x]
+        z_tab = []
+
+        # Forward
+        for b, w in zip(self.biases, self.weights):
+            z = np.dot(w, neuron)+b
+            z_tab.append(z)
+            neuron = self.sigmoid(z)
+            neural_network.append(neuron)
+
+        # Backward
+        gradient_b[-1] = self.cost_derivative(neural_network[-1], y) * self.sigmoid_prime(z_tab[-1])
+        gradient_w[-1] = np.dot(gradient_b[-1], neural_network[-2].transpose())
+
+        #print(gradient_b[-1][0], gradient_w[-1][0],"\n")
+
+        for layer in range(2, self.num_layers):
+            z = z_tab[-layer]
+            gradient_b[-layer] = np.dot(self.weights[-layer+1].transpose(), gradient_b[-layer+1]) * self.sigmoid_prime(z)
+            gradient_w[-layer] = np.dot(gradient_b[-layer], neural_network[-layer-1].transpose())
         return (gradient_b, gradient_w)
+
+    def ridge_fit(self, training_data, alpha=0.2, learning_rate=0.0005):
+
+        train_list = list(training_data)
+
+        # Build feature matrix X (n_samples, hidden_size) and target matrix Y (n_samples, n_outputs)
+        X_rows = []
+        Y_rows = []
+        for x, y in train_list:
+            a = x
+            # propagate up to last hidden layer (exclude final layer)
+            for b, w in zip(self.biases[:-1], self.weights[:-1]):
+                a = self.sigmoid(np.dot(w, a) + b)
+            X_rows.append(a.ravel())
+            Y_rows.append(y.ravel())
+
+        X = np.vstack(X_rows)  # shape (n_samples, hidden_size)
+        Y = np.vstack(Y_rows)  # shape (n_samples, n_outputs)
+
+        hidden_size = X.shape[1]
+        n_outputs = Y.shape[1]
+
+        # Fit ridge for each output neuron
+        new_W = np.zeros((n_outputs, hidden_size))
+        new_b = np.zeros((n_outputs, 1))
+        for j in range(n_outputs):
+            rr = RidgeRegr(alpha=alpha)
+            rr.fit(X, Y[:, j], learning_rate=learning_rate)
+            theta = rr.theta  # shape (hidden_size + 1,)
+            new_b[j, 0] = theta[0]
+            new_W[j, :] = theta[1:]
+
+        # Replace final layer weights and biases
+        self.weights[-1] = new_W
+        self.biases[-1] = new_b
 
     def evaluate(self, test_data): # procent correct
         test_results = [(np.argmax(self.feedforward(x)), y)
@@ -147,7 +205,6 @@ class Network(object):
         \partial a for the output activations."""
         return (output_activations-y)
 
-    #### Miscellaneous functions
     def sigmoid(self, z):
         """The sigmoid function."""
         return 1.0/(1.0+np.exp(-z))
@@ -159,6 +216,17 @@ class Network(object):
 
 training_data, validation_data, test_data = load_data_wrapper()
 training_data = list(training_data)
+validation_data = list(validation_data)
 
-net = Network([784, 30, 10])
-net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+net1 = Network([784, 30, 10])
+
+net1.SGD(training_data, 10, 10, 3.0, test_data=test_data)
+accuracy = net1.evaluate(validation_data)
+print(f"Validation Accuracy: {accuracy} / {len(validation_data)}")
+
+
+net2 = Network([784, 30, 10])
+
+net2.ridge_fit(training_data, alpha=0.3, learning_rate=0.001)
+accuracy = net2.evaluate(validation_data)
+print(f"Validation Accuracy: {accuracy} / {len(validation_data)}")
