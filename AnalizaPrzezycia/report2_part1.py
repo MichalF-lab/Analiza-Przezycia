@@ -61,7 +61,7 @@ def Kaplan_Meier(dane, t=0):
     for i in range(m):
         if dane_uncenzored[i] > t:
             break
-        wynik *= (1 - (1 / (n - i + 1)))
+        wynik *= (1 - (1 / (n - i)))
     return wynik
 
 def Fleming_Harrington(dane, t=0):
@@ -73,31 +73,12 @@ def Fleming_Harrington(dane, t=0):
     for i in range(m):
         if dane_uncenzored[i] > t:
             break
-        wynik += 1 / (n - i + 1)
+        wynik += 1 / (n - i)
     return np.exp(-wynik)
 
 #print("Kaplan_Meier A:", Kaplan_Meier(A, t=0.5))
 #print("Kaplan_Meier B:", Kaplan_Meier(B, t=0.5))
 
-# def Kaplan_Meier(dane, t0=1.0, t=0):
-#     n = len(dane)
-#     wynik = 1
-#     m = np.sum(dane < np.max(dane))
-#     dane = np.sort(dane)
-#     dane_uncenzored = dane[:m]
-#     for i in range(m):
-#         wynik *= (1 - (1 / (n - i + 1)))
-#     return wynik
-
-# def Fleming_Harrington(dane, t0=1.0, t=0):
-#     n = len(dane)
-#     wynik = 0
-#     m = np.sum(dane < np.max(dane))
-#     dane = np.sort(dane)
-#     dane_uncenzored = dane[:m]
-#     for i in range(m):
-#         wynik += 1 / (n - i + 1)
-#     return np.exp(-wynik)
 def generate_plot(func, dane):
     x = []
     y = []
@@ -183,8 +164,6 @@ def generate_plot3(func, dane):
 #generate_plot3(Kaplan_Meier, B)
 
 
-
-
 M = 10000
 alpha = 0.667
 lambdaa = 1.5
@@ -198,7 +177,7 @@ def estimate_parameters_KM(dane, t0=EXw):
     dane = np.sort(dane)
     dane_uncenzored = dane[:m]
     for i in range(m):
-        wynik *= (1 - (1 / (n - i + 1)))
+        wynik *= (1 - (1 / (n - i)))
     temp = dane_uncenzored[-1]
     theta = - 1 / math.log(temp)
     wynik2 = math.exp(-2 / theta)
@@ -209,12 +188,17 @@ for i in range(M):
     for j in range(len(n)):
         dane[j].append(first_type_error(t0 =EXw, n=n[j], lambdaa=lambdaa, alpha=alpha))
 
-print("Generowanie wykresow...")
+
+
+from scipy.stats import norm
 
 ext = []
 for j in dane:
     for i in j:
         ext.append(estimate_parameters_KM(i, t0=EXw))
-    print([x[0] for x in ext])
-    plt.hist([x[0] for x in ext], bins=18, alpha=0.5)
+    temp = [x[0] for x in ext]
+    plt.hist(temp, bins=18, alpha=0.5, density=True, label=f'n={n[dane.index(j)]} - KM Estimator')
+    plt.plot((x := np.linspace(min(temp), max(temp), 300)),
+         norm.pdf(x, np.mean(temp), np.std(temp)))
+
     plt.show()
