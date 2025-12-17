@@ -2,31 +2,27 @@ import pandas as pd
 import numpy as np
 
 # 1. Wczytanie pliku
-url = "https://www.key2stats.com/NCCTG_Lung_Cancer_Data_535_29.csv" 
+url = "https://vincentarelbundock.github.io/Rdatasets/csv/survival/cancer.csv"
 lung = pd.read_csv(url)
 
-# 2. Usunięcie zbędnych kolumn
-lung = lung.drop(columns=["Unnamed: 0", "X"], errors="ignore")
+lung = lung[["time","status","age", "sex", "ph.ecog", "ph.karno"]]
+lung = lung.dropna()
 
-# 3. Sekcje jako NumPy arrays
+lung['age'] = lung['age'].astype(int) - lung['age'].mean()
+lung['ph.karno'] = lung['ph.karno'].astype(int) - lung['ph.karno'].mean()
+lung['sex'] = lung['sex'].map({1: 0, 2: 1})
+lung['status'] = lung['status'].map({1: 0, 2: 1})
+lung_encoded = pd.get_dummies(lung, columns=['ph.ecog'], drop_first=True)
+lung_encoded['ph.ecog_1.0'] = lung_encoded['ph.ecog_1.0'].astype(int)
+lung_encoded['ph.ecog_2.0'] = lung_encoded['ph.ecog_2.0'].astype(int)
+lung_encoded['ph.ecog_3.0'] = lung_encoded['ph.ecog_3.0'].astype(int)
+print(lung_encoded.head())
+# Zakładając, że masz DataFrame 'data' z kolumnami: time, status, sex
 
-# --- Survival ---
-survival_np = lung[["time", "status"]].to_numpy()
+# Odpowiednik: fit_aft = survreg(Surv(time, status) ~ as.factor(sex) + as.factor(censored) + data = dane,
+#                                  dist = "weibull")
 
-# --- Demografia ---
-demographics_np = lung[["age", "sex"]].to_numpy()
+from lifelines import WeibullAFTFitter
 
-# --- Kliniczne ---
-clinical_np = lung[[
-    "inst",
-    "ph.ecog",
-    "ph.karno",
-    "pat.karno",
-    "meal.cal",
-    "wt.loss"
-]].to_numpy()
-
-from sklearn.impute import SimpleImputer
-
-imp = SimpleImputer(strategy="median")
-lung_imputed = pd.DataFrame(imp.fit_transform(lung), columns=lung.columns)
+fit_aft = WeibullAFTFitter().fit(lung_encoded, duration_col='time', event_col='status', formula='sex + ph.ecog_1.0 + ph.ecog_2.0 + ph.ecog_3.0 + age + ph.karno')
+print(fit_aft.summary)
