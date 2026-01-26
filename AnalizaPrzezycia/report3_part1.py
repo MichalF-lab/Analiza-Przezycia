@@ -1,36 +1,38 @@
+import math
 import pandas as pd
 import numpy as np
 
-# 1. Wczytanie pliku
-url = "https://vincentarelbundock.github.io/Rdatasets/csv/survival/cancer.csv"
-lung = pd.read_csv(url)
+# 1 2 
+def wczyuj_i_przygotuj_dane_lung(): 
+    url = "https://vincentarelbundock.github.io/Rdatasets/csv/survival/cancer.csv"
+    lung = pd.read_csv(url)
 
-lung = lung[["time","status","age", "sex", "ph.ecog", "ph.karno"]]
-lung = lung.dropna()
+    lung = lung[["time","status","age", "sex", "ph.ecog", "ph.karno"]]
+    lung = lung.dropna()
 
-lung['age'] = lung['age'].astype(int) - lung['age'].mean()
-lung['ph.karno'] = lung['ph.karno'].astype(int) - lung['ph.karno'].mean()
-lung['sex'] = lung['sex'].map({1: 0, 2: 1})
-lung['status'] = lung['status'].map({1: 0, 2: 1})
-lung_encoded = pd.get_dummies(lung, columns=['ph.ecog'], drop_first=True)
-lung_encoded['ph.ecog_1.0'] = lung_encoded['ph.ecog_1.0'].astype(int)
-lung_encoded['ph.ecog_2.0'] = lung_encoded['ph.ecog_2.0'].astype(int)
-lung_encoded['ph.ecog_3.0'] = lung_encoded['ph.ecog_3.0'].astype(int)
-print(lung_encoded.head())
-# Zakładając, że masz DataFrame 'data' z kolumnami: time, status, sex
+    lung['age'] = lung['age'].astype(int) - lung['age'].mean()
+    lung['ph.karno'] = lung['ph.karno'].astype(int) - lung['ph.karno'].mean()
+    lung['sex'] = lung['sex'].map({1: 0, 2: 1})
+    lung['status'] = lung['status'].map({1: 0, 2: 1})
+    lung_encoded = pd.get_dummies(lung, columns=['ph.ecog'], drop_first=True)
+    lung_encoded['ph.ecog_1.0'] = lung_encoded['ph.ecog_1.0'].astype(int)
+    lung_encoded['ph.ecog_2.0'] = lung_encoded['ph.ecog_2.0'].astype(int)
+    lung_encoded['ph.ecog_3.0'] = lung_encoded['ph.ecog_3.0'].astype(int)
 
-# Odpowiednik: fit_aft = survreg(Surv(time, status) ~ as.factor(sex) + as.factor(censored) + data = dane,
-#                                  dist = "weibull")
+    # Odpowiednik: fit_aft = survreg(Surv(time, status) ~ as.factor(sex) + as.factor(censored) + data = dane,
+    #                                  dist = "weibull")
+    return lung_encoded
+
+lung_encoded = wczyuj_i_przygotuj_dane_lung()
 
 from lifelines import WeibullAFTFitter
 
 fit_aft = WeibullAFTFitter().fit(lung_encoded, duration_col='time', event_col='status', formula='sex + ph.ecog_1.0 + ph.ecog_2.0 + ph.ecog_3.0 + age + ph.karno')
 print(fit_aft.summary)
 
+# 3
+def wczytaj_i_przygotuj_dane_pacjentki(ph = 1):
 
-def wczytaj_i_przygotuj_dane():
-    
-    # zad 3
     url = "https://vincentarelbundock.github.io/Rdatasets/csv/survival/cancer.csv"
     lung_original = pd.read_csv(url)
     lung_original = lung_original[["time","status","age", "sex", "ph.ecog", "ph.karno"]]
@@ -41,23 +43,22 @@ def wczytaj_i_przygotuj_dane():
     # Definicja profilu pacjenta z CENTROWANYMI wartościami
     patient_profile = pd.DataFrame({
         'sex': [1],                      # 1 = kobieta (po mapowaniu 2->1)
-        'ph.ecog_1.0': [1],
-        'ph.ecog_2.0': [0],
+        'ph.ecog_1.0': [ph],
+        'ph.ecog_2.0': [ph - 1],
         'ph.ecog_3.0': [0],
         'age': [70 - age_mean],          # WYCENTROWANY wiek
         'ph.karno': [90 - ph_karno_mean] # WYCENTROWANE ph.karno
     })
     return patient_profile
 
-patient_profile = wczytaj_i_przygotuj_dane()
-
-survival_function = fit_aft.predict_survival_function(patient_profile)
+survival_function = fit_aft.predict_survival_function(wczytaj_i_przygotuj_dane_pacjentki())
 
 prob_survival = survival_function.loc[300].values[0]
 
 print(f"Prawdopodobieństwo, że czas życia > 300 dni: {prob_survival:.4f}")
 print(f"Czyli około: {prob_survival * 100:.2f}%")
 
+# 4
 import matplotlib.pyplot as plt
 
 plt.figure(figsize=(10, 6))
@@ -72,50 +73,101 @@ plt.legend()
 plt.grid(True, alpha=0.3)
 plt.show()
 
-
+# 5 6 
 fit_aft = WeibullAFTFitter().fit(lung_encoded, duration_col='time', event_col='status', formula='sex + ph.ecog_1.0 + ph.ecog_2.0 + ph.ecog_3.0 + age + ph.karno')
-# Pobranie parametrów z modelu AFT
 params = fit_aft.params_
-
-# Parametr kształtu (rho) i sigma
 rho = np.exp(params['rho_'])
 sigma = 1 / rho
 
-print("="*60)
-print("Parametry rozkładu Weibulla:")
-print("="*60)
 print(f"rho = {rho.values[0]:.4f}")
 print(f"sigma = {sigma.values[0]:.4f}")
 
 # Współczynniki gamma z modelu AFT (bez rho_ i lambda_)
 gamma = params.drop(['rho_', 'lambda_'])
-print("\n" + "="*60)
-print("Współczynniki gamma z modelu AFT:")
-print("="*60)
 print(gamma)
 
 # Przekształcenie na współczynniki beta modelu PH: beta = -gamma/sigma
+beta = -gamma / sigma.values[0]
 print(beta)
 # najpierw dajemy parametry dopiero pozniej zmieniamy bete
-beta = -gamma / sigma.values[0]
-print("\n" + "="*60)
-print("Współczynniki beta modelu PH (beta = -gamma/sigma):")
-print("="*60)
+
+# 7
+
+patient1 , patient2 = wczytaj_i_przygotuj_dane_pacjentki(ph=1), wczytaj_i_przygotuj_dane_pacjentki(ph=2)
 
 
+survival_function1 = fit_aft.predict_survival_function(patient1)
+survival_function2 = fit_aft.predict_survival_function(patient2)
+
+#cumulative_hazard1 = fit_aft.predict_cumulative_hazard(patient1)
+#cumulative_hazard2 = fit_aft.predict_cumulative_hazard(patient2)
+#
+#hazard_function1 = cumulative_hazard1.diff().fillna(0)
+#hazard_function2 = cumulative_hazard2.diff().fillna(0)
+
+def hazard_from_survival(S_df, epsilon=1e-8):
+    S = S_df.iloc[:, 0].values
+    t = S_df.index.values
+    return -np.gradient(np.log(S + epsilon), t)
+
+hazard_function1 = hazard_from_survival(survival_function1)
+hazard_function2 = hazard_from_survival(survival_function2)
+
+import numpy as np
+
+lnhazard_function1 = np.log(hazard_function1)
+lnhazard_function2 = np.log(hazard_function2)
 
 
+t1 = survival_function1.index.values
+t2 = survival_function2.index.values
 
-# Zad 1 10
-from lifelines import CoxPHFitter
+plt.figure(figsize=(10, 6))
+plt.plot(t1, hazard_function1, label="ph=1")
+plt.plot(t2, hazard_function2, label="ph=2")
+plt.xlabel("Czas (dni)")
+plt.ylabel("Hazard h(t)")
+plt.title("Funkcja hazardu – kobieta, wiek=70, ph.karno=90")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
 
 
-cph = CoxPHFitter()
-cph.fit(lung_encoded, duration_col='time', event_col='status')
+plt.figure(figsize=(10, 6))
+plt.plot(t1, lnhazard_function1, label="ph=1")
+plt.plot(t2, lnhazard_function2, label="ph=2")
+plt.xlabel("Czas (dni)")
+plt.ylabel("ln h(t)")
+plt.title("Logarytm funkcji hazardu – kobieta, wiek=70, ph.karno=90")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
 
-# Wyświetlenie wyników
-print(cph.summary)
-print("\n" + "="*60)
-print("Parametry modelu (współczynniki):")
-print("="*60)
-print(cph.params_)
+
+# 8 9 
+prob_survival = survival_function1.loc[300].values[0]
+plt.figure(figsize=(10, 6))
+plt.plot(survival_function1.index, survival_function1.values)
+plt.plot(survival_function2.index, survival_function2.values)
+plt.xlabel('Czas (dni)')
+plt.ylabel('Prawdopodobieństwo przeżycia S(t)')
+plt.title('Funkcja przeżycia dla kobiety, wiek=70, ph.ecog=1, ph.karno=90')
+plt.axhline(y=prob_survival, color='r', linestyle='--', 
+            label=f'S(300) = {prob_survival:.4f}')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
+
+
+# zad 9
+def survival_at_time(S_df, t):
+    times = S_df.index.values
+    values = S_df.iloc[:, 0].values
+    return np.interp(t, times, values)
+t_star = 300
+
+prob_survival1 = survival_at_time(survival_function1, t_star)
+prob_survival2 = survival_at_time(survival_function2, t_star)
+
+print(f"P(T > 300) dla ph=1: {prob_survival1:.4f} ({prob_survival1*100:.2f}%)")
+print(f"P(T > 300) dla ph=2: {prob_survival2:.4f} ({prob_survival2*100:.2f}%)")
