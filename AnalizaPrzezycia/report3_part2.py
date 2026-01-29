@@ -5,8 +5,79 @@ import matplotlib.pyplot as plt
 
 lung_encoded = wczyuj_i_przygotuj_dane_lung()
 
-# 1 2
-cph = CoxPHFitter()
+class ProportionalOddsFitter:
+    
+    def __init__(self):
+        self.po_model = None
+        self._coef_names = None
+        self._coef_values = None
+        self._baseline_times = None
+        self._baseline_cum_odds = None
+        self.params_ = None
+        self.baseline_cumulative_hazard_ = None
+        self.baseline_survival_ = None
+        self.summary = None
+    
+    def fit(self, df, duration_col='time', event_col='status', formula=None):
+        r_data = pandas2ri.py2rpy(df)
+        
+        if formula is None:
+            covariates = [col for col in df.columns if col not in [duration_col, event_col]]
+            formula_str = f"Surv({duration_col}, {event_col}) ~ {' + '.join(covariates)}"
+        else:
+            formula_str = formula
+        
+        formula_r = ro.r(formula_str)
+        self.po_model = timereg.prop_odds(formula_r, data=r_data, Nit=40, detail=0)
+        
+        coef_matrix = np.array(self.po_model.rx2('gamma'))
+        self._coef_names = list(self.po_model.rx2('var.name'))
+        self._coef_values = coef_matrix[:, 0]
+        
+        self.params_ = pd.Series(self._coef_values, index=self._coef_names)
+        
+        cum_odds_matrix = np.array(self.po_model.rx2('cum'))
+        self._baseline_times = cum_odds_matrix[:, 0]
+        self._baseline_cum_odds = cum_odds_matrix[:, 1]
+        
+        self.baseline_cumulative_hazard_ = pd.DataFrame(
+            {'baseline cumulative hazard': self._baseline_cum_odds},
+            index=self._baseline_times
+        )
+        
+        baseline_survival_vals = 1 / (1 + np.exp(self._baseline_cum_odds))
+        self.baseline_survival_ = pd.DataFrame(
+            {'baseline survival': baseline_survival_vals},
+            index=self._baseline_times
+        )
+        
+        self.summary = pd.DataFrame({
+            'coef': coef_matrix[:, 0],
+            'se(coef)': coef_matrix[:, 1],
+            'z': coef_matrix[:, 0] / coef_matrix[:, 1],
+            'p': coef_matrix[:, 3]
+        }, index=self._coef_names)
+        
+        return self
+    
+    def _calculate_linear_predictor(self, X):
+        linear_pred = 0
+        for col in X.columns:
+            if col in self._coef_names:
+                idx = self._coef_names.index(col)
+                linear_pred += X[col].values[0] * self._coef_values[idx]
+        return linear_pred
+    
+    def predict_survival_function(self, X):
+        linear_pred = self._calculate_linear_predictor(X)
+        survival_vals = 1 / (1 + np.exp(self._baseline_cum_odds + linear_pred))
+        return pd.DataFrame(survival_vals, index=self._baseline_times, columns=[0])
+    
+    def predict_cumulative_hazard(self, X):
+        survival_func = self.predict_survival_function(X)
+        return -np.log(survival_func)
+    
+cph = ProportionalOddsFitter()
 cph.fit(lung_encoded, duration_col='time', event_col='status')
 
 print(cph.summary)
