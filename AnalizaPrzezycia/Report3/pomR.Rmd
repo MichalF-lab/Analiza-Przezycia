@@ -1,0 +1,76 @@
+---
+title: "pomR"
+output: html_document
+date: "2026-02-11"
+---
+
+```{r cars}
+library(survival)
+
+url <- "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/survival/pbc.csv"
+df <- read.csv(url, row.names = 1)
+
+df <- df[df$status != 1, ]
+df <- df[!is.na(df$trt), ]
+
+mean_age <- mean(df$age, na.rm = TRUE)
+mean_bili <- mean(df$bili, na.rm = TRUE)
+mean_albumin <- mean(df$albumin, na.rm = TRUE)
+
+df$age <- df$age - mean_age
+df$bili <- df$bili - mean_bili
+df$albumin <- df$albumin - mean_albumin
+
+df$trt <- as.factor(df$trt)
+df$edema <- as.factor(df$edema)
+df$stage <- as.factor(df$stage)
+
+fit_po <- survreg(Surv(time, status) ~ trt + age + bili + albumin + edema + stage,
+                  data = df, dist = "loglogistic")
+
+newdata1 <- data.frame(
+  trt = factor(2, levels = levels(df$trt)),
+  age = 40 - mean_age,
+  bili = 3 - mean_bili,
+  albumin = 4 - mean_albumin,
+  edema = factor(0.5, levels = levels(df$edema)),
+  stage = factor(3, levels = levels(df$stage))
+)
+
+newdata2 <- data.frame(
+  trt = factor(2, levels = levels(df$trt)),
+  age = 40 - mean_age,
+  bili = 3 - mean_bili,
+  albumin = 4 - mean_albumin,
+  edema = factor(1, levels = levels(df$edema)),
+  stage = factor(3, levels = levels(df$stage))
+)
+
+times <- seq(1, 4000, length.out = 400)
+
+pred1 <- predict(fit_po, newdata = newdata1, type = "quantile", p = seq(0.01, 0.99, by = 0.01))
+pred2 <- predict(fit_po, newdata = newdata2, type = "quantile", p = seq(0.01, 0.99, by = 0.01))
+
+survival_ph1 <- data.frame(time = pred1, value = seq(0.99, 0.01, by = -0.01))
+survival_ph2 <- data.frame(time = pred2, value = seq(0.99, 0.01, by = -0.01))
+
+hazard_ph1 <- data.frame(time = times, value = dlogis(log(times), location = predict(fit_po, newdata1, type = "lp"), scale = fit_po$scale) / times / (1 - plogis(log(times), location = predict(fit_po, newdata1, type = "lp"), scale = fit_po$scale)))
+hazard_ph2 <- data.frame(time = times, value = dlogis(log(times), location = predict(fit_po, newdata2, type = "lp"), scale = fit_po$scale) / times / (1 - plogis(log(times), location = predict(fit_po, newdata2, type = "lp"), scale = fit_po$scale)))
+
+cumhazard_ph1 <- data.frame(time = times, value = -log(1 - plogis(log(times), location = predict(fit_po, newdata1, type = "lp"), scale = fit_po$scale)))
+cumhazard_ph2 <- data.frame(time = times, value = -log(1 - plogis(log(times), location = predict(fit_po, newdata2, type = "lp"), scale = fit_po$scale)))
+
+baseline_survival <- data.frame(time = times, value = 1 - plogis(log(times), location = 0, scale = fit_po$scale))
+baseline_hazard <- data.frame(time = times, value = dlogis(log(times), location = 0, scale = fit_po$scale) / times / (1 - plogis(log(times), location = 0, scale = fit_po$scale)))
+baseline_cumhazard <- data.frame(time = times, value = -log(1 - plogis(log(times), location = 0, scale = fit_po$scale)))
+
+write.csv(survival_ph1, "survival_ph1.csv", row.names = FALSE)
+write.csv(survival_ph2, "survival_ph2.csv", row.names = FALSE)
+write.csv(hazard_ph1, "hazard_ph1.csv", row.names = FALSE)
+write.csv(hazard_ph2, "hazard_ph2.csv", row.names = FALSE)
+write.csv(cumhazard_ph1, "cumhazard_ph1.csv", row.names = FALSE)
+write.csv(cumhazard_ph2, "cumhazard_ph2.csv", row.names = FALSE)
+write.csv(baseline_survival, "baseline_survival.csv", row.names = FALSE)
+write.csv(baseline_hazard, "baseline_hazard.csv", row.names = FALSE)
+write.csv(baseline_cumhazard, "baseline_cumhazard.csv", row.names = FALSE)
+```

@@ -1,0 +1,228 @@
+---
+title: "Untitled"
+output: html_document
+date: "2026-02-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(survival)
+data(lung)
+
+head(lung)
+# Wyczyść środowisko i załaduj na nowo
+rm(list = ls())  # Usuwa wszystkie obiekty z pamięci
+
+# Sprawdź strukturę
+str(lung)
+head(lung)
+
+# Teraz przygotuj dane
+lung_clean <- na.omit(lung[, c("time", "status", "age", "sex", "ph.ecog", "ph.karno")])
+
+# Utwórz zmienną sex2
+lung_clean$sex2 <- ifelse(lung_clean$sex == 2, 1, 0)
+
+# Zmień status na 0/1
+lung_clean$status <- ifelse(lung_clean$status == 2, 1, 0)
+
+# Posortuj po czasie
+lung_clean <- lung_clean[order(lung_clean$time), ]
+
+# Sprawdź wynik
+head(lung_clean)
+summary(lung_clean)
+
+# Model proporcjonalnych ODDS (survreg z dist="loglogistic")
+fit_po <- survreg(Surv(time, status) ~ age_c + sex_binary + 
+                  factor(ph.ecog) + ph.karno_c, 
+                  data = lung,
+                  dist = "loglogistic")
+
+print(summary(fit_po))
+
+# Funkcja do obliczenia survival dla modelu proporcjonalnych odds
+predict_survival <- function(fit, newdata, times) {
+  # Predykcja liniowa
+  lp <- predict(fit, newdata = newdata, type = "lp")
+  
+  # Parametry modelu loglogistic
+  scale <- fit$scale
+  
+  # Funkcja przeżycia dla log-logistic: S(t) = 1 / (1 + (t/lambda)^(1/scale))
+  # gdzie lambda = exp(lp)
+  lambda <- exp(lp)
+  
+  survival <- 1 / (1 + (times / lambda)^(1/scale))
+  
+  return(data.frame(time = times, value = survival))
+}
+
+# Zakres czasowy
+times <- seq(1, max(lung$time), length.out = 200)
+
+# Profil pacjentki: kobieta, wiek=70, ph.karno=90
+mean_age <- mean(lung$age)
+mean_karno <- mean(lung$ph.karno)
+
+newdata1 <- data.frame(
+  age_c = 70 - mean_age,
+  sex_binary = 1,  # kobieta
+  ph.ecog = factor(1, levels = c(0, 1, 2, 3)),
+  ph.karno_c = 90 - mean_karno
+)
+
+newdata2 <- data.frame(
+  age_c = 70 - mean_age,
+  sex_binary = 1,  # kobieta
+  ph.ecog = factor(2, levels = c(0, 1, 2, 3)),
+  ph.karno_c = 90 - mean_karno
+)
+
+# Bazowa funkcja przeżycia (dla średnich wartości wszystkich zmiennych)
+newdata_baseline <- data.frame(
+  age_c = 0,
+  sex_binary = 0.5,
+  ph.ecog = factor(1, levels = c(0, 1, 2, 3)),
+  ph.karno_c = 0
+)
+
+baseline_surv <- predict_survival(fit_po, newdata_baseline, times)
+
+# Funkcje przeżycia dla obu profili
+surv_ph1 <- predict_survival(fit_po, newdata1, times)
+surv_ph2 <- predict_survival(fit_po, newdata2, times)
+
+# Skumulowany hazard: H(t) = -log(S(t))
+cumhaz_ph1 <- data.frame(time = surv_ph1$time, 
+                         value = -log(surv_ph1$value))
+cumhaz_ph2 <- data.frame(time = surv_ph2$time, 
+                         value = -log(surv_ph2$value))
+
+baseline_cumhaz <- data.frame(time = baseline_surv$time,
+                              value = -log(baseline_surv$value))
+
+# Zapisz wszystkie pliki
+write.csv(baseline_surv, "baseline_survival.csv", row.names = FALSE)
+write.csv(baseline_cumhaz, "baseline_cumhazard.csv", row.names = FALSE)
+write.csv(surv_ph1, "survival_ph1.csv", row.names = FALSE)
+write.csv(surv_ph2, "survival_ph2.csv", row.names = FALSE)
+write.csv(cumhaz_ph1, "cumhazard_ph1.csv", row.names = FALSE)
+write.csv(cumhaz_ph2, "cumhazard_ph2.csv", row.names = FALSE)
+
+cat("Pliki CSV dla modelu proporcjonalnych ODDS zostały wygenerowane!\n")
+cat("\nPrawdopodobieństwo przeżycia dla t=300 dni:\n")
+cat("ph.ecog=1:", surv_ph1$value[which.min(abs(surv_ph1$time - 300))], "\n")
+cat("ph.ecog=2:", surv_ph2$value[which.min(abs(surv_ph2$time - 300))], "\n")
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+---
+title: "Untitled"
+output: html_document
+date: "2026-02-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+# Wczytanie pakietów
+library(survival)
+library(timereg)
+
+# Przygotowanie danych
+data(lung, package="survival")
+
+# 1. Czyszczenie danych: prop.odds nie lubi brakujących wartości (NA)
+# Usuwamy wiersze z NA w kowariatach, których używamy
+lung_clean <- na.omit(lung[, c("time", "status", "age", "ph.ecog", "ph.karno", "sex")])
+
+# 2. Utworzenie zmiennej sex2: 1=female, 0=male
+lung_clean$sex2 <- ifelse(lung_clean$sex == 2, 1, 0)
+
+# 3. Dopasowanie modelu Proportional Odds
+# Uwaga: używamy Event(time, status==2) dla określenia zdarzenia
+out <- prop.odds(Event(time, status==2) ~ age + ph.ecog + ph.karno + sex2,
+                 data = lung_clean, n.sim = 0)
+
+# 4. Wyciągnięcie poprawnych punktów czasowych z modelu
+# Najlepiej pobrać je bezpośrednio z estymatora bazowego (skumulowanego)
+times <- out$cum[, 1]
+
+# 5. Predykcja krzywej baseline (kowariaty = 0)
+# X=1 oznacza wyraz wolny (baseline), Z to macierz kowariatów
+pred_base <- predict(out, X = 1, Z = matrix(0, nrow = 1, ncol = 4), 
+                     times = times, n.sim = 0)
+S_base <- pred_base$S0[1, ]
+H_base <- -log(S_base)
+
+# 6. Definicja kowariatów dla dwóch pacjentek
+# Kolejność w matrix musi być zgodna z formułą: age, ph.ecog, ph.karno, sex2
+Z_pat <- matrix(c(70, 1, 90, 1,   # Pacjentka 1: ph.ecog = 1
+                  70, 2, 90, 1),  # Pacjentka 2: ph.ecog = 2
+                byrow = TRUE, nrow = 2)
+
+# 7. Predykcja dla profili pacjentek
+pred_pat <- predict(out, X = rbind(1, 1), Z = Z_pat, 
+                    times = times, n.sim = 0)
+
+S_pat1 <- pred_pat$S0[1, ]
+S_pat2 <- pred_pat$S0[2, ]
+H_pat1 <- -log(S_pat1)
+H_pat2 <- -log(S_pat2)
+
+# 8. Zapis do plików CSV
+# Tworzymy listę plików i danych do zapisu dla czystości kodu
+results <- list(
+  "baseline_survival.csv" = S_base,
+  "baseline_cumhazard.csv" = H_base,
+  "survival_ph1.csv" = S_pat1,
+  "survival_ph2.csv" = S_pat2,
+  "cumhazard_ph1.csv" = H_pat1,
+  "cumhazard_ph2.csv" = H_pat2
+)
+
+for(name in names(results)) {
+  write.csv(data.frame(time = times, value = results[[name]]), name, row.names = FALSE)
+}
+
+print("Przetwarzanie zakończone. Pliki CSV zostały wygenerowane.")
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

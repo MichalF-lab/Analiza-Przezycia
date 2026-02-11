@@ -1,0 +1,249 @@
+---
+title: "uuuuuijij"
+output: html_document
+date: "2026-02-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+############################################################
+# LISTA 11 — Analiza przeżycia (dane lung) — MODEL PO
+# Wyniki:  zapis do pliku .csf (CSV z rozszerzeniem .csf)
+# Wykresy: PDF
+############################################################
+
+# --- 0) Pakiety i dane ---
+suppressPackageStartupMessages({
+  library(survival)
+  library(nltm)
+})
+
+data(lung)
+
+# porządkowanie
+lung$status <- ifelse(lung$status == 2, 1, 0)   # 1 = zgon, 0 = cenzorowanie
+lung <- lung[, c("time", "status", "age", "sex2", "ph.ecog", "ph.karno")]
+lung <- na.omit(lung)
+
+# --- Ścieżki wyjściowe (możesz zmienić) ---
+out_csf  <- "lista11_wyniki.csf"          # CSV, ale z rozszerzeniem .csf
+out_pdf  <- "lista11_wykresy.pdf"
+out_log  <- "lista11_konsola.txt"         # pełny log z konsoli
+
+# --- Pomocnicza funkcja: bezpieczny log ---
+sink(out_log)
+cat("LISTA 11 — wyniki uruchomienia\n")
+cat("Data/czas:", format(Sys.time()), "\n\n")
+
+# --- 1) Estymacja modelu proporcjonalnych szans (PO) ---
+cat("1) Model PO: Surv(time,status) ~ age + sex + ph.ecog + ph.karno\n\n")
+model_po <- nltm(
+  formula = Surv(time, status) ~ age + sex2 + ph.ecog + ph.karno,
+  data    = lung,
+  model   = "PO"
+)
+
+sum_po <- summary(model_po)
+print(sum_po)
+
+# Tabela współczynników (spróbujmy ustandaryzować)
+# W różnych wersjach pakietu summary może mieć trochę inną strukturę,
+# więc wyciągamy ostrożnie.
+coef_tbl <- NULL
+try({
+  if (!is.null(sum_po$coef)) {
+    coef_tbl <- as.data.frame(sum_po$coef)
+  } else if (!is.null(sum_po$coefficients)) {
+    coef_tbl <- as.data.frame(sum_po$coefficients)
+  }
+}, silent = TRUE)
+
+if (is.null(coef_tbl)) {
+  # fallback: bierzemy same współczynniki z obiektu
+  b <- coef(model_po)
+  coef_tbl <- data.frame(Estimate = as.numeric(b), row.names = names(b))
+}
+
+# Dodajmy exp(beta) jako "iloraz szans przeżycia"
+coef_tbl$exp_beta <- exp(coef_tbl[, 1])
+
+# --- 2) Interpretacja współczynników (tekstowo) ---
+cat("\n2) Interpretacja współczynników (PO):\n")
+cat("W modelu proporcjonalnych szans (PO) exp(beta) interpretuje się jako\n")
+cat("mnożnik szans przeżycia (odds of survival) przy wzroście zmiennej o 1.\n")
+cat("- exp(beta) > 1: większe szanse przeżycia\n")
+cat("- exp(beta) < 1: mniejsze szanse przeżycia\n\n")
+
+interpretacje <- lapply(1:nrow(coef_tbl), function(i) {
+  nm <- rownames(coef_tbl)[i]
+  est <- coef_tbl[i, 1]
+  eb  <- coef_tbl$exp_beta[i]
+  kier <- if (eb > 1) "ZWIEKSZA" else "ZMNIEJSZA"
+  sprintf("%s: beta=%.4f, exp(beta)=%.4f -> %s szanse przezycia", nm, est, eb, kier)
+})
+interpretacje <- unlist(interpretacje)
+cat(paste0("- ", interpretacje, collapse = "\n"), "\n")
+
+# --- 3) Bazowa skumulowana funkcja hazardu i bazowa funkcja przeżycia ---
+cat("\n3) Bazowa skumulowana funkcja hazardu i bazowa funkcja przezycia\n")
+base <- baseHaz(model_po)
+
+# Ujednolicenie nazw (różne wersje mogą mieć inne)
+# Zakładamy, że base zawiera czas i H0
+time0 <- NULL
+H0    <- NULL
+if (all(c("time","H0") %in% names(base))) {
+  time0 <- base$time
+  H0    <- base$H0
+} else {
+  # spróbujmy znaleźć kolumny po typowych nazwach
+  # (czas) i (skumulowany hazard)
+  tn <- names(base)
+  time_col <- tn[grep("time", tn, ignore.case = TRUE)][1]
+  haz_col  <- tn[grep("^H0$|haz|cum", tn, ignore.case = TRUE)][1]
+  time0 <- base[[time_col]]
+  H0    <- base[[haz_col]]
+}
+S0 <- exp(-H0)
+
+cat("Zapisano bazowa krzywa: liczba punktow =", length(time0), "\n")
+
+# --- 4) Skumulowana funkcja hazardu dla dwóch kobiet ---
+cat("\n4) Skumulowana funkcja hazardu H(t) dla:\n")
+cat(" (a) kobieta, 70 lat, ph.ecog=1, ph.karno=90\n")
+cat(" (b) kobieta, 70 lat, ph.ecog=2, ph.karno=90\n")
+
+new_a <- data.frame(age = 70, sex = 2, ph.ecog = 1, ph.karno = 90)
+new_b <- data.frame(age = 70, sex = 2, ph.ecog = 2, ph.karno = 90)
+
+H_a <- predict(model_po, newdata = new_a, type = "cumhaz")
+H_b <- predict(model_po, newdata = new_b, type = "cumhaz")
+
+# Ujednolicenie pól z predict
+get_time_haz <- function(obj) {
+  # typowo: obj$time i obj$hazard
+  if (all(c("time","hazard") %in% names(obj))) return(list(time=obj$time, haz=obj$hazard))
+  # fallback: szukamy podobnych
+  tn <- names(obj)
+  time_col <- tn[grep("time", tn, ignore.case = TRUE)][1]
+  haz_col  <- tn[grep("haz", tn, ignore.case = TRUE)][1]
+  list(time = obj[[time_col]], haz = obj[[haz_col]])
+}
+
+ta <- get_time_haz(H_a)$time
+Ha <- get_time_haz(H_a)$haz
+tb <- get_time_haz(H_b)$time
+Hb <- get_time_haz(H_b)$haz
+
+# --- 5) Funkcja przeżycia i P(T > 300) ---
+cat("\n5) Funkcja przezycia i P(T > 300 dni)\n")
+Sa <- exp(-Ha)
+Sb <- exp(-Hb)
+
+# interpolacja przez najbliższy punkt czasowy
+closest <- function(tvec, t0) which.min(abs(tvec - t0))
+
+idx_a <- closest(ta, 300)
+idx_b <- closest(tb, 300)
+
+Pa_300 <- Sa[idx_a]
+Pb_300 <- Sb[idx_b]
+
+cat(sprintf("P(T > 300) dla (a) ~ %.6f (czas=%.1f)\n", Pa_300, ta[idx_a]))
+cat(sprintf("P(T > 300) dla (b) ~ %.6f (czas=%.1f)\n", Pb_300, tb[idx_b]))
+
+# --- 6) Wykres S(t) dla (a) ---
+cat("\n6) Wykres S(t) dla przypadku (a) zapisany do PDF\n")
+
+# --- WYKRESY do PDF ---
+pdf(out_pdf)
+
+# 3) bazowy H0 i S0
+plot(time0, H0, type="l",
+     xlab="czas (dni)", ylab="H0(t)",
+     main="Bazowa skumulowana funkcja hazardu H0(t)")
+plot(time0, S0, type="l",
+     xlab="czas (dni)", ylab="S0(t)",
+     main="Bazowa funkcja przezycia S0(t)")
+
+# 4) H(t) dla (a) i (b)
+plot(ta, Ha, type="l", col="blue",
+     xlab="czas (dni)", ylab="H(t)",
+     main="Skumulowana funkcja hazardu H(t) — (a) vs (b)")
+lines(tb, Hb, col="red")
+legend("topleft", legend=c("(a) ph.ecog=1", "(b) ph.ecog=2"),
+       col=c("blue","red"), lty=1, bty="n")
+
+# 4) log H(t)
+plot(ta, log(Ha), type="l", col="blue",
+     xlab="czas (dni)", ylab="log H(t)",
+     main="log skumulowanej funkcji hazardu — (a) vs (b)")
+lines(tb, log(Hb), col="red")
+legend("topleft", legend=c("(a) ph.ecog=1", "(b) ph.ecog=2"),
+       col=c("blue","red"), lty=1, bty="n")
+
+# 6) S(t) dla (a)
+plot(ta, Sa, type="l",
+     xlab="czas (dni)", ylab="S(t)",
+     main="Funkcja przezycia S(t) — przypadek (a)")
+
+dev.off()
+
+# --- ZAPIS "ODPOWIEDZI" do pliku .csf ---
+# Zrobimy tabelę typu key-value, czytelną i łatwą do oddania.
+wyniki <- data.frame(
+  pole = character(),
+  wartosc = character(),
+  stringsAsFactors = FALSE
+)
+
+# 1) współczynniki
+for (i in 1:nrow(coef_tbl)) {
+  nm <- rownames(coef_tbl)[i]
+  wyniki <- rbind(wyniki, data.frame(pole=paste0("beta_", nm), wartosc=as.character(coef_tbl[i,1])))
+  wyniki <- rbind(wyniki, data.frame(pole=paste0("exp_beta_", nm), wartosc=as.character(coef_tbl$exp_beta[i])))
+}
+
+# 2) interpretacje
+for (i in seq_along(interpretacje)) {
+  wyniki <- rbind(wyniki, data.frame(pole=paste0("interpretacja_", i), wartosc=interpretacje[i]))
+}
+
+# 5) prawdopodobieństwa
+wyniki <- rbind(wyniki, data.frame(pole="P_T_gt_300_a", wartosc=as.character(Pa_300)))
+wyniki <- rbind(wyniki, data.frame(pole="P_T_gt_300_b", wartosc=as.character(Pb_300)))
+
+# informacje o plikach
+wyniki <- rbind(wyniki, data.frame(pole="plik_pdf_wykresy", wartosc=out_pdf))
+wyniki <- rbind(wyniki, data.frame(pole="plik_log_konsoli", wartosc=out_log))
+
+# zapis jako CSV (separator ; wygodny w PL), ale rozszerzenie .csf
+write.table(wyniki, file=out_csf, sep=";", row.names=FALSE, col.names=TRUE, quote=TRUE)
+
+cat("\n--- KONIEC ---\n")
+cat("Zapisano wyniki do:", out_csf, "\n")
+cat("Zapisano wykresy do:", out_pdf, "\n")
+cat("Zapisano log do:", out_log, "\n")
+
+sink()
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

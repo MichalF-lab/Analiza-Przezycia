@@ -1,0 +1,68 @@
+---
+title: "ph11"
+output: html_document
+date: "2026-02-06"
+---
+
+```{r}
+# Instalacja i załadowanie pakietów    # tylko przy pierwszym uruchomieniu
+library(survival)
+library(timereg)
+
+# Wczytanie i filtrowanie danych lung (tylko kobiety, usunięcie braków)
+data(lung)                     
+lung <- subset(lung, sex2 == 2)  
+lung <- lung[complete.cases(lung$time, lung$status, lung$age, lung$ph.ecog, lung$ph.karno), ]
+
+# Dodajemy przykładową cechę 'ph' (dwie grupy 1 i 2), np. losowo
+set.seed(123)
+lung$ph <- sample(c(1,2), nrow(lung), replace=TRUE)
+
+data(lung, package = "survival")
+
+# 1. Czyszczenie danych: prop.odds nie lubi brakujących wartości (NA)
+# Zbiór już zawiera zmienną sex2
+lung_clean <- na.omit(lung[, c("time", "status", "age", "ph.ecog", "ph.karno", "sex2")])
+
+
+# 2. Dopasowanie modelu proporcjonalnych szans
+out <- prop.odds(Event(time, status ==0) ~ age + ph.ecog + ph.karno + sex2,
+                 data = lung_clean, n.sim = 0)
+
+summary(out)  # podsumowanie dopasowania
+
+
+# Profile pacjentek: dwa wiersze z ph=1 i ph=2
+patients <- data.frame(age=70, ph.ecog=1, ph.karno=90, ph=c(1,2))
+
+# Predykcja przeżycia (S0) dla obu profili
+pred <- predict(fit, newdata = patients, se = FALSE, uniform = FALSE)
+# pred$time  to wektor punktów czasowych
+# pred$S0   to macierz (2 wiersze x czas)
+
+# Wyciągamy survival i obliczamy skumulowany hazard h = -log(S)
+time <- pred$time
+surv1 <- pred$S0[1, ]   # profil ph=1
+surv2 <- pred$S0[2, ]   # profil ph=2
+haz1  <- -log(surv1)
+haz2  <- -log(surv2)
+
+write.csv(lung, "lung_encoded.csv", row.names = FALSE)
+
+write.csv(patients, "pacjentki.csv", row.names = FALSE)
+
+write.csv(data.frame(time=time, hazard=haz1), "hazard_ph1.csv", row.names=FALSE)
+write.csv(data.frame(time=time, hazard=haz2), "hazard_ph2.csv", row.names=FALSE)
+
+write.csv(data.frame(time=time, survival=surv1), "survival_ph1.csv", row.names=FALSE)
+write.csv(data.frame(time=time, survival=surv2), "survival_ph2.csv", row.names=FALSE)
+
+coef_names <- names(fit$gamma)
+write.csv(data.frame(Variable=coef_names, Coefficient=fit$gamma),
+          "model_params.csv", row.names=FALSE)
+
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

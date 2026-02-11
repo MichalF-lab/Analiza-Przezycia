@@ -1,0 +1,557 @@
+LISTA 11 — wyniki uruchomienia
+Data/czas: 2026-02-08 11:57:57 
+
+1) Model PO: Surv(time,status) ~ age + sex + ph.ecog + ph.karno
+
+'data.frame':	228 obs. of  10 variables:
+ $ inst     : num  3 3 3 5 1 12 7 11 1 7 ...
+ $ time     : num  306 455 1010 210 883 ...
+ $ status   : num  2 2 1 2 2 1 2 2 2 2 ...
+ $ age      : num  74 68 56 57 60 74 68 71 53 61 ...
+ $ sex      : num  1 1 1 1 1 1 2 2 1 1 ...
+ $ ph.ecog  : num  1 0 0 1 0 1 2 2 1 2 ...
+ $ ph.karno : num  90 90 90 90 100 50 70 60 70 70 ...
+ $ pat.karno: num  100 90 90 60 90 80 60 80 80 70 ...
+ $ meal.cal : num  1175 1225 NA 1150 NA ...
+ $ wt.loss  : num  NA 15 15 11 0 0 10 1 16 34 ...
+      time            status            age             sex           ph.ecog          ph.karno           sex2       
+ Min.   :   5.0   Min.   :0.0000   Min.   :39.00   Min.   :1.000   Min.   :0.0000   Min.   : 50.00   Min.   :0.0000  
+ 1st Qu.: 170.8   1st Qu.:0.0000   1st Qu.:56.00   1st Qu.:1.000   1st Qu.:0.0000   1st Qu.: 80.00   1st Qu.:0.0000  
+ Median : 262.5   Median :1.0000   Median :63.00   Median :1.000   Median :1.0000   Median : 80.00   Median :0.0000  
+ Mean   : 307.2   Mean   :0.7212   Mean   :62.46   Mean   :1.398   Mean   :0.9469   Mean   : 82.04   Mean   :0.3982  
+ 3rd Qu.: 401.5   3rd Qu.:1.0000   3rd Qu.:69.00   3rd Qu.:2.000   3rd Qu.:1.0000   3rd Qu.: 90.00   3rd Qu.:1.0000  
+ Max.   :1022.0   Max.   :1.0000   Max.   :82.00   Max.   :2.000   Max.   :3.0000   Max.   :100.00   Max.   :1.0000  
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.982 0.326000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045900    0.0704     1.2900
+ph.karno -0.00635 0.0182    0.0214      0.0179 -0.297 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045800    0.0704     1.2900
+ph.karno -0.00637 0.0182    0.0214      0.0179 -0.298 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67900 0.3100    0.3390      0.3030  2.000 0.045500    0.0714     1.2900
+ph.karno -0.00633 0.0182    0.0214      0.0179 -0.296 0.767000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67900 0.3100    0.3390      0.3030  2.000 0.045500    0.0714     1.2900
+ph.karno -0.00633 0.0182    0.0214      0.0179 -0.296 0.767000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045800    0.0704     1.2900
+ph.karno -0.00637 0.0182    0.0214      0.0179 -0.298 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045800    0.0704     1.2900
+ph.karno -0.00637 0.0182    0.0214      0.0179 -0.298 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+attr(,"names")
+[1] "age"      "ph.ecog"  "ph.karno" "sex"     
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+attr(,"names")
+[1] "age"      "ph.ecog"  "ph.karno" "sex"     
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+attr(,"names")
+[1] "age"      "ph.ecog"  "ph.karno" "sex"     
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+attr(,"names")
+[1] "age"      "ph.ecog"  "ph.karno" "sex"     
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+attr(,"names")
+[1] "age"      "ph.ecog"  "ph.karno" "sex"     
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+attr(,"names")
+[1] "age"      "ph.ecog"  "ph.karno" "sex"     
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+attr(,"names")
+[1] "age"      "ph.ecog"  "ph.karno" "sex"     
+[1] "Przetwarzanie zakończone. Pliki CSV zostały wygenerowane."
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.982 0.326000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045900    0.0704     1.2900
+ph.karno -0.00635 0.0182    0.0214      0.0179 -0.297 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01390 0.0145    0.0142      0.0140  0.982 0.326000   -0.0145     0.0423
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045500    0.0704     1.2900
+ph.karno -0.00631 0.0182    0.0214      0.0179 -0.295 0.768000   -0.0420     0.0294
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.982 0.326000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045900    0.0704     1.2900
+ph.karno -0.00635 0.0182    0.0214      0.0179 -0.297 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.982 0.326000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045900    0.0704     1.2900
+ph.karno -0.00635 0.0182    0.0214      0.0179 -0.297 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+             estimate
+age       0.013963155
+ph.ecog   0.677658159
+ph.karno -0.006351865
+sex      -0.944080118
+             estimate
+age       0.013947016
+ph.ecog   0.678381902
+ph.karno -0.006314384
+sex      -0.944171029
+[1] "--- Współczynniki modelu (Gamma) ---"
+             estimate
+age       0.013983014
+ph.ecog   0.678573365
+ph.karno -0.006329634
+sex      -0.944291307
+[1] "--- Pełne podsumowanie ---"
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67900 0.3100    0.3390      0.3030  2.000 0.045500    0.0714     1.2900
+ph.karno -0.00633 0.0182    0.0214      0.0179 -0.296 0.767000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+[1] "--- Współczynniki modelu (Gamma) ---"
+             estimate
+age       0.013999155
+ph.ecog   0.677849716
+ph.karno -0.006367105
+sex      -0.944200474
+[1] "--- Pełne podsumowanie ---"
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045800    0.0704     1.2900
+ph.karno -0.00637 0.0182    0.0214      0.0179 -0.298 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+[1] "--- Współczynniki modelu (Gamma) ---"
+             estimate
+age       0.013999155
+ph.ecog   0.677849716
+ph.karno -0.006367105
+sex      -0.944200474
+[1] "--- Pełne podsumowanie ---"
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67800 0.3100    0.3390      0.3030  2.000 0.045800    0.0704     1.2900
+ph.karno -0.00637 0.0182    0.0214      0.0179 -0.298 0.766000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.600 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
+function (name, pos = -1L, envir = as.environment(pos), all.names = FALSE, 
+    pattern, sorted = TRUE) 
+{
+    if (!missing(name)) {
+        pos <- tryCatch(name, error = function(e) e)
+        if (inherits(pos, "error")) {
+            name <- substitute(name)
+            if (!is.character(name)) 
+                name <- deparse(name)
+            warning(gettextf("%s converted to character string", 
+                sQuote(name)), domain = NA)
+            pos <- name
+        }
+    }
+    all.names <- .Internal(ls(envir, all.names, sorted))
+    if (!missing(pattern)) {
+        if ((ll <- length(grep("[", pattern, fixed = TRUE))) && 
+            ll != length(grep("]", pattern, fixed = TRUE))) {
+            if (pattern == "[") {
+                pattern <- "\\["
+                warning("replaced regular expression pattern '[' by  '\\\\['")
+            }
+            else if (length(grep("[^\\\\]\\[<-", pattern))) {
+                pattern <- sub("\\[<-", "\\\\\\[<-", pattern)
+                warning("replaced '[<-' by '\\\\[<-' in regular expression pattern")
+            }
+        }
+        grep(pattern, all.names, value = TRUE)
+    }
+    else all.names
+}
+<bytecode: 0x000000000c6711c0>
+<environment: namespace:base>
+[1] "--- Współczynniki modelu (Gamma) ---"
+             estimate
+age       0.013983014
+ph.ecog   0.678573365
+ph.karno -0.006329634
+sex      -0.944291307
+[1] "--- Pełne podsumowanie ---"
+Proportional Odds model 
+
+Test for baseline 
+Test not computed, sim=0 
+
+Covariate effects 
+            Coef.     SE Robust SE D2log(L)^-1      z    P-val lower2.5% upper97.5%
+age       0.01400 0.0145    0.0142      0.0140  0.984 0.325000   -0.0144     0.0424
+ph.ecog   0.67900 0.3100    0.3390      0.3030  2.000 0.045500    0.0714     1.2900
+ph.karno -0.00633 0.0182    0.0214      0.0179 -0.296 0.767000   -0.0420     0.0293
+sex      -0.94400 0.2570    0.2620      0.2590 -3.610 0.000312   -1.4500    -0.4400
+Test of Goodness-of-fit 
+Test not computed, sim=0 
+
+NULL
