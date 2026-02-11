@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3585edbb-1d92-4d5b-b083-da65ff5a283c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Raport1\AnalizaPrzezycia.py</StartupFile>
+    <StartupFile>Lista3.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,13 +21,23 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Raport1\AnalizaPrzezycia.py" />
+    <Compile Include="Lista2.py" />
+    <Compile Include="Lista3.py" />
+    <Compile Include="Raport1\Lista1 - Copy.py" />
+    <Compile Include="report3_part1.py" />
+    <Compile Include="report3_part2.py" />
+    <Compile Include="report_part2.py" />
+    <Compile Include="Raport1\Lista1.py" />
+    <Compile Include="report_part1.py" />
+    <Compile Include="report_part3.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Raport1\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="szablon.html" />
+    <Content Include="Lista1.pdf" />
+    <Content Include="Raport1\moj_raport.pdf" />
+    <Content Include="style.css" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

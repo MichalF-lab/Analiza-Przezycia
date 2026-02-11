@@ -7,19 +7,24 @@ def dexp(lambdaa, alpha):
 
 def first_type_error(t0, n = 10, lambdaa = 1, alpha = 1):
     ext = [dexp(lambdaa, alpha) for _ in range(n)]
+    delta = []
     for i in range(len(ext)):
         if ext[i] > t0:
             ext[i] = t0
-    return ext
+            delta.append(0)   # obserwacja ocenzurowana
+        else:
+            delta.append(1)   # awaria zaobserwowana
+
+    return ext, delta
 
 #print(first_type_error(1))
 
 def second_type_error(m, n = 10, lambdaa = 1, alpha = 1):
     ext = [dexp(lambdaa, alpha) for _ in range(n)]
     ext.sort()
-    ext = ext[:m]
-    ext += [max(ext) for _ in range(n - m)]
-    return ext
+    delta = [1] * m + [0] * (n - m)
+    ext = ext[:m] + [ext[m-1]] * (n - m)
+    return ext, delta
 
 #print(second_type_error(5))
 
@@ -27,39 +32,47 @@ def random_type_error(eta, n = 10, lambdaa = 1, alpha = 1):
     ext = [dexp(lambdaa, alpha) for _ in range(n)]
     ext2 = [np.random.exponential(scale=eta) for _ in range(n)]
     ext3 = []
+    delta = []
     for i in range(len(ext)):
-        if ext[i] > ext2[i]:
-            ext3.append((ext[i], 1))
+        if ext[i] < ext2[i]:
+            ext3.append(ext[i])
+            delta.append(1)
         else:
-            ext3.append((ext2[i], 0))
-    return ext3
+            ext3.append(ext2[i])
+            delta.append(0)
+    return ext3, delta
+
 
 #print(random_type_error(1))
+def stats_type1(data, delta):
+    def quantile(data, q):
+        return np.percentile(data, q)
 
-def stats_type1(data, t0):
-    complete = [x for x in data if x < t0]
+    complete = [data[i] for i in range(len(data)) if delta[i] == 1]
     return {
         'n': len(data),
         'n_complete': len(complete),
         'min_time': np.min(data),
-        'median': np.median(complete),
-        'Q': np.percentile(data, 25) 
+        'median': np.median(complete) if len(complete) > 0 else None,
+        'Q': quantile(complete, 25),
+        'Q3': quantile(complete, 75),
+        'IQR': quantile(complete, 75) - quantile(complete, 25)
     }
 
-def stats_type2(data, m):
-    complete = data[:m]
+def stats_type2(data, delta, m):
+    complete = [data[i] for i in range(len(data)) if delta[i] == 1]
     return {
         'n': len(data),
         'n_complete': m,
-        'censoring_value': data[m],
+        'censoring_value': data[m-1],
         'max_time': np.max(data),
-        'median': np.median(complete)
+        'median': np.median(data) if len(complete) > 0 else None
     }
 
-def stats_random(data):
-    times = np.array([x[0] for x in data])
-    complete = [x[0] for x in data if x[1] == 0]
-    censored = [x[0] for x in data if x[1] == 1]
+def stats_random(data, delta):
+    times = np.array(data)
+    complete = [data[i] for i in range(len(data)) if delta[i] == 1]
+    censored = [data[i] for i in range(len(data)) if delta[i] == 0]
     
     stats = {
         'n': len(data),
@@ -67,7 +80,7 @@ def stats_random(data):
         'n_censored': len(censored),
         'min_time': np.min(times),
         'max_time': np.max(times),
-        'median_time': np.median(times)
+        'median': np.median(times)
     }
     
     if len(complete) > 0:
@@ -79,26 +92,24 @@ def stats_random(data):
     
     return stats
 
+
 # Generowanie danych
 np.random.seed(42)
 n = 20
 lambdaa = 1.5
 alpha = 2.0
 
-# Typ I
 t0 = 1.5
-data1 = first_type_error(t0, n=n, lambdaa=lambdaa, alpha=alpha)
-stats1 = stats_type1(data1, t0)
-
+ext1, delta1 = first_type_error(t0, n=n, lambdaa=lambdaa, alpha=alpha)
+stats1 = stats_type1(ext1, delta1)
 # Typ II
 m = 12
-data2 = second_type_error(m, n=n, lambdaa=lambdaa, alpha=alpha)
-stats2 = stats_type2(data2, m)
-
+ext2, delta2 = second_type_error(m, n=n, lambdaa=lambdaa, alpha=alpha)
+stats2 = stats_type2(ext2, delta2, m)
 # Losowe
 eta = 1.0
-data3 = random_type_error(eta, n=n, lambdaa=lambdaa, alpha=alpha)
-stats3 = stats_random(data3)
+ext3, delta3 = random_type_error(eta, n=n, lambdaa=lambdaa, alpha=alpha)
+stats3 = stats_random(ext3, delta3)
 
 
 # --- Dane dla leku A ---
@@ -146,25 +157,25 @@ bez_remisji_B = np.array([
 A = np.concatenate((remisja_A, bez_remisji_A))
 B = np.concatenate((remisja_B, bez_remisji_B))
 
-statsA = stats_type1(A, t0=1.0)
-statsB = stats_type1(B, t0=1.0)
+delta_A = np.array([1]*10 + [0]*10)
+delta_B = np.array([1]*10 + [0]*10)
+
+statsA = stats_type1(A, delta_A)
+statsB = stats_type1(B, delta_B)
 
 
 def przeslij_dane2():
-    """
-    Główna funkcja
-    """
-    
-    print("   📈 Dane zad2:")
+
+    print(" Dane zad2:")
     dane1 = stats1
     dane2 = stats2
     dane3 = stats3
     
-    print("   📈 Dane zad3:")
+    print("Dane zad3:")
     daneA = statsA
     daneB = statsB
 
-    print("\n✍️ Generowanie wzorów matematycznych:")
+    print("\ Generowanie wzorów matematycznych:")
     # Funkcja gęstości (PDF)
     wzor_pdf_latex = r'f(x) = \alpha \lambda e^{-\lambda x} \left(1 - e^{-\lambda x}\right)^{\alpha - 1}, \quad x \geq 0'
     wzor_pdf = wzor_do_base64(wzor_pdf_latex, "Funkcja gęstości (PDF) \n")

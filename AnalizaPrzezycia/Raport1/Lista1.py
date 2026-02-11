@@ -71,7 +71,7 @@ def stworz_html(dane1, dane2, dane3, dane4):
     html = html.replace('{{D1NC}}', str(dane2["dane1"]['n_complete']))
     html = html.replace('{{D1M}}', f'{dane2["dane1"]["min_time"]:.4f}')
     html = html.replace('{{D1MED}}', f'{dane2["dane1"]["median"]:.4f}')
-    html = html.replace('{{DAQ}}', f'{dane2["dane1"]["Q"]:.4f}')
+    html = html.replace('{{DQ1}}', f'{dane2["dane1"]["Q"]:.4f}')
 
     # Cenzurowanie typu II
     html = html.replace('{{D2N}}', str(dane2["dane2"]['n']))
@@ -85,19 +85,24 @@ def stworz_html(dane1, dane2, dane3, dane4):
     html = html.replace('{{D3NCEN}}', str(dane2["dane3"]['n_censored']))
     html = html.replace('{{D3MIN}}', f'{dane2["dane3"]["min_time"]:.4f}')
     html = html.replace('{{D3MAX}}', f'{dane2["dane3"]["max_time"]:.4f}')
+    html = html.replace('{{D3MED}}', f'{dane2["dane3"]["median"]:.4f}')
 
     # Porównanie leków A i B
     html = html.replace('{{DAN}}', str(dane2["daneA"]['n']))
     html = html.replace('{{DANC}}', str(dane2["daneA"]['n_complete']))
     html = html.replace('{{DAM}}', f'{dane2["daneA"]["min_time"]:.4f}')
     html = html.replace('{{DAMED}}', f'{dane2["daneA"]["median"]:.4f}')
-    html = html.replace('{{DAMED}}', f'{dane2["daneA"]["median"]:.4f}')
+    html = html.replace('{{DAQ}}', f'{dane2["daneA"]["Q"]:.4f}')
+    html = html.replace('{{DAQ3}}', f'{dane2["daneA"]["Q3"]:.4f}')
+    html = html.replace('{{DAIQR}}', f'{dane2["daneA"]["IQR"]:.4f}')
 
     html = html.replace('{{DBN}}', str(dane2["daneB"]['n']))
     html = html.replace('{{DBNC}}', str(dane2["daneB"]['n_complete']))
     html = html.replace('{{DBM}}', f'{dane2["daneB"]["min_time"]:.4f}')
     html = html.replace('{{DBMED}}', f'{dane2["daneB"]["median"]:.4f}')
     html = html.replace('{{DBQ}}', f'{dane2["daneB"]["Q"]:.4f}')
+    html = html.replace('{{DBQ3}}', f'{dane2["daneB"]["Q3"]:.4f}')
+    html = html.replace('{{DBIQR}}', f'{dane2["daneB"]["IQR"]:.4f}')
 
     # Lista3
     html = html.replace('{{EST_A_TYPE1}}', f'{dane3["est_A_type1"]:.4f}')
@@ -132,11 +137,11 @@ def stworz_html(dane1, dane2, dane3, dane4):
     html = html.replace('{{CI2_B_001_U}}', f'{dane3["ci2_B_001"][1]:.4f}')
     
     # Bias
-    for i in range(1, 9):
+    for i in range(1, 13):
         html = html.replace(f'{{{{BIAS{i}}}}}', f'{dane3[f"bias{i}"]:.6f}')
     
     # MSE
-    for i in range(1, 9):
+    for i in range(1, 13):
         html = html.replace(f'{{{{MSE{i}}}}}', f'{dane3[f"mse{i}"]:.6f}')
     
 
@@ -274,7 +279,7 @@ def main():
     
     if sukces:
         print("\n" + "=" * 60)
-        print("  ✅ Gotowe! Otwórz plik: moj_raport.pdf")
+        print("  ✅ Gotowe! Otwórz plik: Lista1.pdf")
         print("=" * 60)
     else:
         print("\n" + "=" * 60)

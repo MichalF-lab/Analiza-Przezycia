@@ -1,0 +1,440 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Raport Analizy Przeżycia - Listy 9-12</title>
+</head>
+<body>
+    <div class="header">
+        <h1>Raport Analizy Przeżycia</h1>
+        <p class="date">Data wygenerowania: {{DATA}}</p>
+        <p class="subtitle">Michał Frąckowiak 275951</p>
+    </div>
+
+    <div class="section">
+        <h1>Lista 9: Model Przyspieszonego Czasu Awarii (Weibull AFT)</h1>
+
+        <div class="info-box">
+            <strong>Zbiór danych:</strong> lung (survival package)<br>
+            <strong>Liczba obserwacji:</strong> 228 pacjentów z zaawansowanym rakiem płuc<br>
+            <strong>Zmienna zależna:</strong> time (czas przeżycia w dniach)<br>
+            <strong>Charakterystyki:</strong> age, sex, ph.ecog, ph.karno<br>
+            <strong>Rozkład bazowy:</strong> Weibull
+        </div>
+
+        <h2>Zadanie 1-2: Oszacowanie parametrów modelu AFT i ich interpretacja</h2>
+
+        <h3>Podsumowanie modelu Weibull AFT</h3>
+        {{TABELA_AFT_SUMMARY}}
+
+        <p>
+            Zmienne age (wiek) oraz ph.karno mają współczynniki EXP(COEF) bardzo bliskie jedności (odpowiednio 0.991 i 0.989), co oznacza, że ich realny wpływ na model jest znikomy.
+            Dodatni współczynnik przy płci (EXP(COEF) ≈ 1.50) sugeruje, że ta grupa ma o 50% wyższe szanse na badany wynik (np. przeżycie) w porównaniu do grupy odniesienia.
+        </p>
+
+        <h2>Zadanie 3-4: Funkcja przeżycia dla profilu pacjenta</h2>
+        <p>
+            <strong>Profil pacjenta:</strong> kobieta, wiek 70 lat, ph.ecog=1, ph.karno=90
+        </p>
+
+        <div class="chart-container">
+            <img src="{{WYKRES_AFT_SURV}}" alt="Wykres 1: Oszacowana funkcja przeżycia S(t) dla modelu Weibull AFT">
+            <p class="chart-caption">Wykres 1: Oszacowana funkcja przeżycia S(t) dla modelu Weibull AFT</p>
+        </div>
+
+        <div class="results-box">
+            <h4>Prawdopodobieństwo przeżycia > 300 dni:</h4>
+            <strong>P(T > 300):</strong> = {{PROB_AFT_300}} ({{PROB_AFT_300_PCT}})
+        </div>
+
+        <br>
+        <br>
+        <br>
+        <br>
+
+        <h2>Zadanie 5-6: Interpretacja współczynników</h2>
+        <p>
+            Współczynniki modelu proporcjonalnych hazardów:
+        </p>
+        <ul>
+            <li><strong>Dodatni współczynnik</strong> → wydłużenie czasu przeżycia</li>
+            <li><strong>Ujemny współczynnik</strong> → skrócenie czasu przeżycia</li>
+        </ul><table border="1" cellpadding="5" style="border-collapse: collapse; width: 100%; text-align: left;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th>Zmienna</th>
+                    <th>Oszacowanie (estimate)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>age</strong></td>
+                    <td>0.014</td>
+                </tr>
+                <tr>
+                    <td><strong>sex2</strong> (kobieta)</td>
+                    <td>-0.944</td>
+                </tr>
+                <tr>
+                    <td><strong>ph.ecog</strong></td>
+                    <td>0.678</td>
+                </tr>
+                <tr>
+                    <td><strong>ph.karno</strong></td>
+                    <td>-0.006</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Interpretacja kluczowych wyników:</h4>
+        <ul>
+            <li><strong>sex2:</strong> Ujemne oszacowanie (-0.944) wskazuje na niższe ryzyko zgonu u kobiet.</li>
+            <li><strong>ph.ecog:</strong> Dodatnie oszacowanie (0.678) wskazuje, że wyższy stopień w skali ECOG koreluje z wyższym ryzykiem.</li>
+            <li><strong>age &amp; ph.karno:</strong> Parametry te mają marginalny wpływ na wynik modelu.</li>
+        </ul>
+        <h2>Zadanie 7: Funkcje hazardu dla różnych profili</h2>
+
+        <h3>7a-b) Wykresy funkcji hazardu h(t)</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_AFT_HAZARD}}" alt="Wykres 2: Funkcje hazardu dla ph.ecog=1 i ph.ecog=2">
+            <p class="chart-caption">Wykres 2: Funkcje hazardu dla ph.ecog=1 i ph.ecog=2</p>
+        </div>
+        <p>
+            Wykresy te wyglądają na dość spójne z założeniem proporcjonalności ponieważ krzywe zachowują zbliżony kształt.
+        </p>
+
+        <h3>Wykresy logarytmów funkcji hazardu ln(h(t))</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_AFT_LNHAZARD}}" alt="Wykres 3: Logarytmy funkcji hazardu">
+            <p class="chart-caption">Wykres 3: Logarytmy funkcji hazardu</p>
+        </div>
+
+        <p class="interpretation">
+            <strong>Wątpliwości co do modelu proporcjonalnych hazardów?</strong><br>
+            W modelu PH linie ln(h(t)) powinny być równoległe (stała różnica).
+            Linie zbiegają się co może to sugerować naruszenie założenia PH.
+        </p>
+
+        <h2>Zadanie 8-9: Porównanie funkcji przeżycia</h2>
+
+        <h3>Funkcje przeżycia dla obu profili</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_AFT_SURV_POROWNANIE}}" alt="Wykres 4: Porównanie funkcji przeżycia dla ph.ecog=1 i ph.ecog=2">
+            <p class="chart-caption">Wykres 4: Porównanie funkcji przeżycia dla ph.ecog=1 i ph.ecog=2</p>
+        </div>
+
+        <div class="results-box">
+            <h4>Prawdopodobieństwa przeżycia > 300 dni:</h4>
+            <strong>Ph.ecog=1:</strong> {{PROB_AFT_PH1_300}} ({{PROB_AFT_PH1_300_PCT}})<br>
+            <strong>Ph.ecog=2:</strong> {{PROB_AFT_PH2_300}} ({{PROB_AFT_PH2_300_PCT}})<br>
+        </div>
+    </div>
+    <div class="chart-container">
+        <img src="{{WYKRES_AFT_SURV_POROWNANIE5}}" alt="Wykres 5: Porównanie funkcji przeżycia dla różnych modeli">
+            <p class="chart-caption">Wykres 5: Porównanie funkcji przeżycia dla róznych modelli</p>
+        <strong>Porównanie z zadaniem 3:</strong> Wartości od siebie dość mozno dobiegają.
+    </div>
+
+
+
+
+
+
+
+
+    <div class="section">
+        <h1>Lista 10: Model Proporcjonalnych Hazardów Coxa</h1>
+
+        <div class="info-box">
+            <strong>Model:</strong> Cox Proportional Hazards (bez założenia rozkładu)<br>
+            <strong>Zmienna zależna:</strong> time (czas przeżycia)<br>
+            <strong>Charakterystyki:</strong> age, sex, ph.ecog, ph.karno
+        </div>
+
+        <h2>Zadanie 1-2: Oszacowanie parametrów modelu Coxa i ich interpretacja</h2>
+
+        <h3>Podsumowanie modelu Cox PH</h3>
+        {{TABELA_COX_SUMMARY}}
+
+        <p class="interpretation">
+            <strong>Interpretacja współczynników Coxa: (coef)</strong><br>
+            exp(β) = Hazard Ratio (HR) - stosunek ryzyka<br>
+            • HR > 1 → zwiększone ryzyko zgonu<br>
+            • HR < 1 → zmniejszone ryzyko zgonu
+        </p>
+
+        <h2>Zadanie 3: Bazowe funkcje modelu Coxa</h2>
+
+        <h3>Bazowa skumulowana funkcja hazardu</h3>
+        <div class="chart-container">
+            <img src="{{TABELA_BASELINE_CUMHAZ}}" alt="Bazowa skumulowana funkcja hazardu">
+        </div>
+        <div class="chart-container">
+            <h3>Bazowa funkcja przeżycia</h3>
+            <img src="{{TABELA_BASELINE_SURV}}" alt="Bazowa funkcja przeżycia">
+        </div>
+        <h2>Zadanie 4: Skumulowane funkcje hazardu dla profili pacjentów</h2>
+
+        <h3>4a-b) Wykresy skumulowanego hazardu</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_COX_CUMHAZARD}}" alt="Wykres 5: Skumulowany hazard dla ph.ecog=1 i ph.ecog=2">
+            <p class="chart-caption">Wykres 5: Skumulowany hazard dla ph.ecog=1 i ph.ecog=2</p>
+        </div>
+
+        <h3>Logarytmy skumulowanego hazardu</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_COX_LNCUMHAZARD}}" alt="Wykres 6: Logarytmy skumulowanego hazardu">
+            <p class="chart-caption">Wykres 6: Logarytmy skumulowanego hazardu</p>
+        </div>
+
+        <p class="interpretation">
+            Linie ln(H(t)) powinny być równoległe w modelu PH i faktycznie są, więc nie ma naruszenia założenia proporcjonalnych hazardów.
+        </p>
+
+        <h2>Zadanie 5-6: Funkcje przeżycia</h2>
+
+        <div class="chart-container">
+            <img src="{{WYKRES_COX_SURV}}" alt="Wykres 7: Funkcje przeżycia z modelu Coxa">
+            <p class="chart-caption">Wykres 7: Funkcje przeżycia z modelu Coxa</p>
+        </div>
+
+        <div class="results-box">
+            <h4>Prawdopodobieństwa przeżycia > 300 dni:</h4>
+            <strong>Ph.ecog=1:</strong> {{PROB_COX_PH1_300}} ({{PROB_COX_PH1_300_PCT}})<br>
+            <strong>Ph.ecog=2:</strong> {{PROB_COX_PH2_300}} ({{PROB_COX_PH2_300_PCT}})<br>
+            <br>
+        </div>
+        <div class="results-box">
+            <h4>Prawdopodobieństwa przeżycia > 300 dni dla modelu porporcjonanych szans</h4>
+                Ph.ecog=1: 0.6537 (65.37%)<br>
+                Ph.ecog=2: 0.4892 (48.92%)
+            <br>
+        </div>
+        <p>
+            Model Coxa wykazuje większą pesymistyczność, szacując szanse na 59,06% dla ECOG=1 i zaledwie 36,03% dla ECOG=2.
+
+            Model proporcjonalnych szans daje wyniki wyraźnie wyższe, odpowiednio 65,37% oraz 48,92%, co jest szczególnie widoczne przy gorszym stanie ogólnym pacjenta (różnica aż 13 punktów procentowych dla ECOG=2).
+        </p>
+        <div class="chart-container">
+            <img src="{{WYKRES_COX_SUR}}" alt="Wykres 8: Funkcje przeżycia z modelu Coxa">
+            <strong>Porównanie z Listą 9:</strong><br>
+            Model Coxa daje prawie identyczne oszacowania
+            jak model AFT.
+        </div>
+    </div>
+
+
+
+
+
+    <div class="section">
+        <h1>Lista 11: Model Ordered Logit/Probit</h1>
+
+        <div class="info-box">
+            <strong>Model:</strong> Ordered Logit Model (statsmodels.OrderedModel)<br>
+            <strong>Zmienna zależna:</strong> time_category (czas przeżycia - skategoryzowany)<br>
+            <strong>Charakterystyki:</strong> age, sex, ph.ecog, ph.karno
+        </div>
+
+        <h2>Zadanie 1-2: Oszacowanie parametrów modelu OrderedModel i ich interpretacja</h2>
+
+        <h3>Parametry modelu</h3>
+        {{TABELA_PO_PARAMS}}
+
+        <p class="interpretation">
+            <strong>Interpretacja współczynników Ordered Logit:</strong><br>
+            exp(β) = Odds Ratio dla kategorii czasu<br>
+            • OR > 1 → zwiększone szanse przejścia (dłuższe przeżycie)<br>
+            • OR < 1 → zmniejszone szanse przejścia (krótsze przeżycie)<br>
+            <br>
+        </p>
+
+        <h2>Zadanie 3: Bazowe funkcje modelu</h2>
+
+        <h3>Bazowa skumulowana funkcja hazardu</h3>
+        <div class="chart-container">
+            <img src="{{TABELA_PO_BASELINE_CUMHAZ}}" alt="Bazowa skumulowana funkcja hazardu">
+            <p class="chart-caption">Oszacowanie bazowego hazardu</p>
+        </div>
+
+        <h3>Bazowa funkcja przeżycia</h3>
+        <div class="chart-container">
+            <img src="{{TABELA_PO_BASELINE_SURV}}" alt="Bazowa funkcja przeżycia">
+            <p class="chart-caption">Oszacowanie bazowej funkcji przeżycia </p>
+        </div>
+
+        <h2>Zadanie 4: Porównanie z modelem Coxa</h2>
+
+        <h3>Skumulowane funkcje hazardu</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_PO_CUMHAZARD}}" alt="Wykres 8: Skumulowany hazard z modelu Ordered Logit">
+            <p class="chart-caption">Wykres 8: Skumulowany hazard (ph.ecog=1 vs ph.ecog=2). WYniki są podobne</p>
+        </div>
+
+        <h3>Logarytmy skumulowanego hazardu</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_PO_LNCUMHAZARD}}" alt="Wykres 9: Logarytmy skumulowanego hazardu">
+            <p class="chart-caption">Wykres 9: Logarytmy skumulowanego hazardu </p>
+        </div>
+
+        <p class="interpretation">
+            <strong>Porównanie z Listą 10:</strong><br>
+            Otrzymane wykresy funkcji hazardu oraz logarytmu skumulowanego hazardu są wyraźne podobne do tych uzyskiwanych w modelu Coxa
+        </p>
+
+        <h2>Zadanie 5-6: Funkcje przeżycia i porównanie</h2>
+
+        <div class="chart-container">
+            <img src="{{WYKRES_PO_SURV}}" alt="Wykres 10: Funkcje przeżycia z modelu Ordered Logit">
+            <p class="chart-caption">Wykres 10: Funkcje przeżycia dla kategorii czasu</p>
+        </div>
+
+        <div class="results-box">
+            <h4>Prawdopodobieństwa przeżycia dla kategorii odpowiadającej ~300 dniom:</h4>
+            <strong>Ph.ecog=1:</strong> {{PROB_PO_PH1_300}} ({{PROB_PO_PH1_300_PCT}})<br>
+            <strong>Ph.ecog=2:</strong> {{PROB_PO_PH2_300}} ({{PROB_PO_PH2_300_PCT}})<br>
+            Dla modelu Coxa <strong>Ph.ecog=1:)</strong> 0.5906 (59.06%
+            <br>
+            <strong>Porównanie z Listą 10:</strong><br>
+            Wziualiacja pokazuje bardzo wysoką zgodność pomiędzy modelem proporcjonalnych szans a modelem Coxa.Wyraźne rozdzielenie krzywych dla ph.ecog=1 oraz ph.ecog=2 w obu podejściach potwierdza, że stan sprawności pacjentki jest kluczowym i statystycznie istotnym czynnikiem determinującym rokowanie.
+        </div>
+    </div>
+
+        <div class="section">
+            <h1>Lista 12: Testy Istotności Zmiennych</h1>
+
+            <h2>Zadanie 1: Testy dla modelu AFT</h2>
+            <p>
+                Poziom istotności: α = 0.05
+            </p>
+
+            <h3>1a) Test istotności zmiennej AGE</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>p-value</th>
+                        <th>Decyzja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Test Walda</strong></td>
+                        <td>{{AFT_AGE_WALD}}</td>
+                        <td rowspan="2">{{AFT_AGE_WNIOSKI}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Test ilorazu wiarygodności (LRT)</strong></td>
+                        <td>{{AFT_AGE_LRT}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>1b) Test istotności zmiennej SEX</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>p-value</th>
+                        <th>Decyzja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Test Walda</strong></td>
+                        <td>{{AFT_SEX_WALD}}</td>
+                        <td rowspan="2">{{AFT_SEX_WNIOSKI}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Test ilorazu wiarygodności (LRT)</strong></td>
+                        <td>{{AFT_SEX_LRT}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>1c) Test istotności zmiennej PH.ECOG</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>p-value</th>
+                        <th>Decyzja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Test ilorazu wiarygodności (LRT)</strong></td>
+                        <td>{{AFT_ECOG_LRT}}</td>
+                        <td>{{AFT_ECOG_WNIOSKI}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Zadanie 2: Testy dla modelu Cox PH</h2>
+
+            <h3>2a) Test istotności zmiennej AGE</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>p-value</th>
+                        <th>Decyzja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Test Walda</strong></td>
+                        <td>{{COX_AGE_WALD}}</td>
+                        <td rowspan="2">{{COX_AGE_WNIOSKI}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Test ilorazu wiarygodności (LRT)</strong></td>
+                        <td>{{COX_AGE_LRT}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2b) Test istotności zmiennej SEX</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>p-value</th>
+                        <th>Decyzja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Test Walda</strong></td>
+                        <td>{{COX_SEX_WALD}}</td>
+                        <td rowspan="2">{{COX_SEX_WNIOSKI}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Test ilorazu wiarygodności (LRT)</strong></td>
+                        <td>{{COX_SEX_LRT}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2c) Test istotności zmiennej PH.ECOG</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>p-value</th>
+                        <th>Decyzja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Test ilorazu wiarygodności (LRT)</strong></td>
+                        <td>{{COX_ECOG_LRT}}</td>
+                        <td>{{COX_ECOG_WNIOSKI}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+</body>
+</html>
+
