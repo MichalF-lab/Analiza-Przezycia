@@ -48,18 +48,26 @@ newdata2 <- data.frame(
 )
 
 times <- seq(1, 4000, length.out = 400)
+lp1 <- predict(fit_po, newdata = newdata1, type = "lp")
+lp2 <- predict(fit_po, newdata = newdata2, type = "lp")
 
-pred1 <- predict(fit_po, newdata = newdata1, type = "quantile", p = seq(0.01, 0.99, by = 0.01))
-pred2 <- predict(fit_po, newdata = newdata2, type = "quantile", p = seq(0.01, 0.99, by = 0.01))
+survival_val1 <- 1 - plogis((log(times) - lp1) / fit_po$scale)
+survival_val2 <- 1 - plogis((log(times) - lp2) / fit_po$scale)
 
-survival_ph1 <- data.frame(time = pred1, value = seq(0.99, 0.01, by = -0.01))
-survival_ph2 <- data.frame(time = pred2, value = seq(0.99, 0.01, by = -0.01))
+pdf1 <- dlogis((log(times) - lp1) / fit_po$scale) / (fit_po$scale * times)
+pdf2 <- dlogis((log(times) - lp2) / fit_po$scale) / (fit_po$scale * times)
 
-hazard_ph1 <- data.frame(time = times, value = dlogis(log(times), location = predict(fit_po, newdata1, type = "lp"), scale = fit_po$scale) / times / (1 - plogis(log(times), location = predict(fit_po, newdata1, type = "lp"), scale = fit_po$scale)))
-hazard_ph2 <- data.frame(time = times, value = dlogis(log(times), location = predict(fit_po, newdata2, type = "lp"), scale = fit_po$scale) / times / (1 - plogis(log(times), location = predict(fit_po, newdata2, type = "lp"), scale = fit_po$scale)))
+hazard_val1 <- pdf1 / survival_val1
+hazard_val2 <- pdf2 / survival_val2
 
-cumhazard_ph1 <- data.frame(time = times, value = -log(1 - plogis(log(times), location = predict(fit_po, newdata1, type = "lp"), scale = fit_po$scale)))
-cumhazard_ph2 <- data.frame(time = times, value = -log(1 - plogis(log(times), location = predict(fit_po, newdata2, type = "lp"), scale = fit_po$scale)))
+survival_ph1 <- data.frame(time = times, value = survival_val1)
+survival_ph2 <- data.frame(time = times, value = survival_val2)
+
+hazard_ph1 <- data.frame(time = times, value = hazard_val1)
+hazard_ph2 <- data.frame(time = times, value = hazard_val2)
+
+cumhazard_ph1 <- data.frame(time = times, value = -log(survival_val1))
+cumhazard_ph2 <- data.frame(time = times, value = -log(survival_val2))
 
 baseline_survival <- data.frame(time = times, value = 1 - plogis(log(times), location = 0, scale = fit_po$scale))
 baseline_hazard <- data.frame(time = times, value = dlogis(log(times), location = 0, scale = fit_po$scale) / times / (1 - plogis(log(times), location = 0, scale = fit_po$scale)))
