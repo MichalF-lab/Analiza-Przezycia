@@ -2,19 +2,15 @@
 
 import numpy as np
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 from report3_part1 import wczyuj_i_przygotuj_dane_lung, wczytaj_i_przygotuj_dane_pacjentki
 from report_part1 import wykres_do_base64
 
-os.environ['LANGUAGE'] = 'en'
-os.environ['LC_ALL'] = 'C'
 
 lung_encoded = wczyuj_i_przygotuj_dane_lung()
 
-load_r_environment()
 
 def make_person_period(df, time_col="time", status_col="status", max_t=None):
     if max_t is None:
@@ -33,14 +29,14 @@ def make_person_period(df, time_col="time", status_col="status", max_t=None):
 
     return pd.DataFrame(rows)
 
-        cum_matrix = np.array(model.rx2('cum'))
-        self._baseline_times = cum_matrix[:, 0]
-        self._baseline_cum_odds = cum_matrix[:, 1]
 
 max_time = int(lung_encoded['time'].max())
 long_df = make_person_period(lung_encoded, max_t=max_time)
 
-covariates = ["age","sex","ph.karno","ph.ecog_1.0","ph.ecog_2.0","ph.ecog_3.0"]
+covariates = [
+    "age","sex","ph.karno",
+    "ph.ecog_1.0","ph.ecog_2.0","ph.ecog_3.0"
+]
 y = long_df["y"]
 X_main = long_df[covariates]
 
@@ -64,11 +60,6 @@ params_df = pd.DataFrame({
     "Exp(coef)": np.exp(result.params.values)
 })
 
-        self.baseline_survival_ = pd.DataFrame(
-            1 / (1 + np.exp(self._baseline_cum_odds)), 
-            index=self._baseline_times, columns=['baseline_survival']
-        )
-        self.baseline_cumulative_hazard_ = -np.log(self.baseline_survival_)
 
 def predict_survival_curve(result, patient_profile, max_t=None):
     if max_t is None:
@@ -155,9 +146,6 @@ patient_profile2 = wczytaj_i_przygotuj_dane_pacjentki(ph=2)
 hazard_function1 = cph.predict_cumulative_hazard(patient_profile1)
 hazard_function2 = cph.predict_cumulative_hazard(patient_profile2)
 
-t1 = hazard_function1.index.values
-t2 = hazard_function2.index.values
-
 def fig1():
     plt.figure(figsize=(10, 6))
     plt.plot(time_axis, H1, label="PS: ph.ecog=1", linestyle='--')
@@ -189,9 +177,7 @@ def fig2():
 def fig3():
     survival_function1 = cph.predict_survival_function(patient_profile1)
     survival_function2 = cph.predict_survival_function(patient_profile2)
-prob_survival = survival_function1.loc[300].values[0]
     
-def fig3():
     plt.figure(figsize=(10, 6))
     # Discrete time model
     plt.plot(time_axis, S1, label="PS: ph.ecog=1", linestyle='--')
@@ -223,9 +209,6 @@ prob_survival2 = S2[300] if 300 < len(S2) else 0.0
 print(f"\nP(T > 300) dla ph.ecog=1: {prob_survival1:.4f} ({prob_survival1*100:.2f}%)")
 print(f"P(T > 300) dla ph.ecog=2: {prob_survival2:.4f} ({prob_survival2*100:.2f}%)")
 
-t_star = 300
-prob_survival1 = survival_at_time(survival_function1, t_star)
-prob_survival2 = survival_at_time(survival_function2, t_star)
 
 def przeslij_dane3():
     summary_html = str(result.summary())
@@ -242,6 +225,3 @@ def przeslij_dane3():
         "prob_survival1": prob_survival1,
         "prob_survival2": prob_survival2,
     }
-
-print("Model dopasowany pomyślnie!")
-print(cph.summary)

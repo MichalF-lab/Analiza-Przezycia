@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3585edbb-1d92-4d5b-b083-da65ff5a283c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Lista3.py</StartupFile>
+    <StartupFile>Lista4.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,6 +23,7 @@
   <ItemGroup>
     <Compile Include="Lista2.py" />
     <Compile Include="Lista3.py" />
+    <Compile Include="Lista4.py" />
     <Compile Include="Raport1\Lista1 - Copy.py" />
     <Compile Include="report3_part1.py" />
     <Compile Include="report3_part2.py" />
