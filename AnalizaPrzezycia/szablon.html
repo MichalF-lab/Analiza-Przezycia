@@ -30,7 +30,6 @@
         <div class="code-block">
             <pre><code>
     def dEW(x, alpha, beta, gamma):
-        qweibull_cdf = 1 - np.exp(-(x / beta)**alpha)
         weibull_pdf = (alpha / beta) * (x / beta)**(alpha - 1) * np.exp(-(x / beta)**alpha)
         return gamma * weibull_pdf * weibull_cdf**(gamma - 1)
                 </code></pre>
@@ -87,6 +86,12 @@
         <div class="chart-container">
             <img src="{{WYKRES1}}" alt="Wykres funkcji hazardu">
         </div>
+        <p>
+            Wykres przedstawia gęstości prawdopodobieństwa rozkładu Exponentiated Weibull dla różnych zestawów parametrów
+            (α,β,γ). Wszystkie krzywe startują od zera w punkcie
+            x=0, następnie rosną, a dla większych wartości
+            x zachowują się odmiennie w zależności od parametrów.
+        </p>
     </div>
 
 
@@ -99,14 +104,13 @@
         <div class="code-block">
             <div class="code-header">Program do generowania zmiennych</div>
             <pre><code>
-
-    def pEW(x, alpha, beta, gamma):
-        return (1 - np.exp(-(x / beta)**alpha))**gamma
+    def qEW(u, alpha, beta, gamma):
+        return beta * (-np.log(1 - u**(1/gamma)))**(1/alpha)
 
     def rEW(size, alpha, beta, gamma):
-        samples = np.random.uniform(0, 1, size=100)
-        return pEW(samples, alpha, beta, gamma)
-                </code></pre>
+        u = np.random.uniform(0, 1, size)
+        return qEW(u, alpha, beta, gamma)
+</code></pre>
         </div>
     </div>
 
@@ -143,10 +147,10 @@
                 <tr>
                     <th>Statystyka</th>
                     <th>Wartość teoretyczna</th>
-                    <th>Próba 1<br>(n=50, α=2, β=4, γ=3)</th>
-                    <th>Próba 2<br>(n=100, α=2, β=4, γ=3)</th>
-                    <th>Próba 3<br>(n=50, α=2, β=2, γ=1)</th>
-                    <th>Próba 4<br>(n=100, α=2, β=2, γ=1)</th>
+                    <td>Próba 1<br>(n=50, a=2, b=4, γ=3)</td>
+                    <td>Próba 2<br>(n=100, a=2, b=4, γ=3)</td>
+                    <td>Próba 3<br>(n=50, a=2, b=2, γ=1)</td>
+                    <td>Próba 4<br>(n=100, a=2, b=2, γ=1)</td>
                 </tr>
             </thead>
             <tbody>
@@ -253,13 +257,22 @@
 
         <div class="code-block">
             <pre><code>
-     def first_type_error(t0, n = 10, lambdaa = 1, alpha = 1):
-       ext = [dexp(lambdaa, alpha) for _ in range(n)]
-       for i in range(len(ext)):
-           if ext[i] > t0:
-               ext[i] = t0
-       return ext
-               </code></pre>
+    def dexp(lambdaa, alpha):
+        t = np.random.rand()
+        return -(1/lambdaa) * np.log(1 - t**(1/alpha))
+
+    def first_type_error(t0, n = 10, lambdaa = 1, alpha = 1):
+        ext = [dexp(lambdaa, alpha) for _ in range(n)]
+        delta = []
+        for i in range(len(ext)):
+        if ext[i] > t0:
+        ext[i] = t0
+        delta.append(0)   
+        else:
+        delta.append(1)  
+
+    return ext, delta
+</code></pre>
         </div>
         <br><br><br><br><br><br>
 
@@ -269,13 +282,13 @@
             Cenzurowanie typu II kończy badanie po uzyskaniu z góry ustalonej liczby m zdarzeń.</p>
         <div class="code-block">
             <pre><code>
-     def second_type_error(m, n = 10, lambdaa = 1, alpha = 1):
-       ext = [dexp(lambdaa, alpha) for _ in range(n)]
-       ext.sort()
-       ext = ext[:m]
-       ext += [max(ext) for _ in range(n - m)]
-       return ext
-               </code></pre>
+    def second_type_error(m, n = 10, lambdaa = 1, alpha = 1):
+        ext = [dexp(lambdaa, alpha) for _ in range(n)]
+        ext.sort()
+        delta = [1] * m + [0] * (n - m)
+        ext = ext[:m] + [ext[m-1]] * (n - m)
+        return ext, delta
+</code></pre>
         </div>
 
         <h4>Cenzurowanie losowe niezależne</h4>
@@ -286,16 +299,19 @@
         <div class="code-block">
             <pre><code>
     def random_type_error(eta, n = 10, lambdaa = 1, alpha = 1):
-       ext = [dexp(lambdaa, alpha) for _ in range(n)]
-       ext2 = [np.random.exponential(scale=eta) for _ in range(n)]
-       ext3 = []
-       for i in range(len(ext)):
-           if ext[i] > ext2[i]:
-               ext3.append((ext[i], 1))
-           else:
-               ext3.append((ext2[i], 0))
-       return ext3
-               </code></pre>
+        ext = [dexp(lambdaa, alpha) for _ in range(n)]
+        ext2 = [np.random.exponential(scale=eta) for _ in range(n)]
+        ext3 = []
+        delta = []
+        for i in range(len(ext)):
+            if ext[i] < ext2[i]:
+                ext3.append(ext[i])
+                delta.append(1)
+            else:
+                ext3.append(ext2[i])
+            delta.append(0)
+        return ext3, delta
+</code></pre>
         </div>
     </div>
        <br><br><br><br><br><br><br><br>
@@ -311,7 +327,7 @@
            </div>
            <p>
                W każdym przypadku część obserwacji została ocenzurowana
-               W tej próbie liczba pełnych obserwacji była wysoka (16 z 20), co oznacza niski poziom cenzurowania.
+               W tej próbie liczba komletnych obserwacji była wysoka (16 z 20), co oznacza niski poziom cenzurowania.
                W przypadku cenzurowania losowego stopień ocenzurowania jest znacznie wyższy (13 z 20 obserwacji
                W danych dotyczących cenzurowania typu II również widać umiarkowany poziom cenzurowania oraz zbliżoną medianę do pierwszego przypadku
            </p>
@@ -319,10 +335,9 @@
            <table>
                <tr><th>Parametr</th><th>Wartość</th></tr>
                <tr><td>n</td><td>{{D1N}}</td></tr>
-               <tr><td>Liczba pełnych obserwacji</td><td>{{D1NC}}</td></tr>
+               <tr><td>Liczba komletnych obserwacji</td><td>{{D1NC}}</td></tr>
                <tr><td>Pierwsza obserwacja</td><td>{{D1M}}</td></tr>
                <tr><td>Mediana</td><td>{{D1MED}}</td></tr>
-               <tr><td>Q1</td><td>{{DQ1}}</td></tr>
                <tr><td>Q1</td><td>{{DQ1}}</td></tr>
            </table>
        </div>
@@ -352,9 +367,6 @@
        <h2>2.3 Porównanie leków</h2>
        <div class="section">
            <h2>💊 Porównanie leków A i B</h2>
-           <p>
-               NIe widać większych rózńic między lekami A i B na podstawie podstawowych statystyk opisowych.
-           </p>
            <table>
                <tr><th>Statystyka</th><th>Lek A</th><th>Lek B</th></tr>
                <tr><td>Liczba obserwacji</td><td>{{DAN}}</td><td>{{DBN}}</td></tr>
@@ -362,8 +374,13 @@
                <tr><td>Pierwsza obserwacja</td><td>{{DAM}}</td><td>{{DBM}}</td></tr>
                <tr><td>Mediana</td><td>{{DAMED}}</td><td>{{DBMED}}</td></tr>
                <tr><td>Q1</td><td>{{DAQ}}</td><td>{{DBQ}}</td></tr>
+               <tr><td>Q3</td><td>{{DAQ3}}</td><td>{{DBQ3}}</td></tr>
+               <tr><td>IRQ</td><td>{{DAIQR}}</td><td>{{DBIQR}}</td></tr>
            </table>
        </div>
+       <p>
+           Widać że jest spora róznica pomiędzy grupami pod względem Q3 i IQR
+       </p>
 
        <!-- SEKCJA 3: ESTYMATORY I PRZEDZIAŁY UFNOŚCI -->
        <div class="section">
@@ -544,12 +561,22 @@
                        <td>{{BIAS4}}</td>
                    </tr>
                    <tr>
-                       <td>n=10, t0=1.2</td>
+                       <td>n=10, t0=1</td>
                        <td>{{BIAS5}}</td>
                        <td>{{BIAS6}}</td>
                    </tr>
                    <tr>
-                       <td>n=30, t0=1.2</td>
+                       <td>n=30, t0=1</td>
+                       <td>{{BIAS7}}</td>
+                       <td>{{BIAS8}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=10, t0=2</td>
+                       <td>{{BIAS5}}</td>
+                       <td>{{BIAS6}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=30, t0=2</td>
                        <td>{{BIAS7}}</td>
                        <td>{{BIAS8}}</td>
                    </tr>
@@ -561,7 +588,7 @@
                Niższe wartości MSE oznaczają lepszą
                jakość estymacji. Zwiększenie rozmiaru próby znacząco redukuje MSE,
                co pokazuje korzyści płynące z większych badań. Porównanie MSE dla różnych czasów
-               cenzurowania (t₀=0.5 vs t₀=1.2) ilustruje, jak długość okresu obserwacji wpływa
+               cenzurowania (t₀=0.5 vs t₀=1 vs vs t₀=2) ilustruje, jak długość okresu obserwacji wpływa
                na precyzję estymacji - dłuższa obserwacja dostarcza więcej informacji.
            </p>
            <table>
@@ -584,17 +611,30 @@
                        <td>{{MSE4}}</td>
                    </tr>
                    <tr>
-                       <td>n=10, t0=1.2</td>
+                       <td>n=10, t0=1</td>
                        <td>{{MSE5}}</td>
                        <td>{{MSE6}}</td>
                    </tr>
                    <tr>
-                       <td>n=30, t0=1.2</td>
+                       <td>n=30, t0=1</td>
                        <td>{{MSE7}}</td>
                        <td>{{MSE8}}</td>
                    </tr>
+                   <tr>
+                       <td>n=10, t0=2</td>
+                       <td>{{MSE9}}</td>
+                       <td>{{MSE10}}</td>
+                   </tr>
+                   <tr>
+                       <td>n=30, t0=2</td>
+                       <td>{{MSE11}}</td>
+                       <td>{{MSE12}}</td>
+                   </tr>
                </tbody>
            </table>
+           <p>
+
+           </p>
        </div>
 
         <!-- SEKCJA 4: TESTY MOCY -->
@@ -608,7 +648,7 @@ def exp_likelihood_ratio_test(data, theta0):
     r = np.sum(data < np.max(data))
     data = np.sort(data)
     data_uncenzored = data[:r]
-    s = np.sum(data_uncenzored)
+    s = np.sum(data)
     #t0 = data_uncenzored[-1]
     theta_hat = r / s
 
@@ -802,9 +842,10 @@ def exp_likelihood_ratio_test(data, theta0):
                </tbody>
            </table>
 
+
            <h3>4.3 Test dla leków A i B (H₀: θ = 1)</h3>
            <p>
-               W kontekście klinicznym oznacza to, że skuteczność leku istotnie odbiega od H0.
+               Zarówno dla Leku A, jak i Leku B, nie ma podstaw do odrzucenia hipotezy zerowej
            </p>
            <table>
                <thead>
@@ -828,4 +869,5 @@ def exp_likelihood_ratio_test(data, theta0):
                </tbody>
            </table>
        </div>
-
+    </body>
+</html>

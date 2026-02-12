@@ -4,14 +4,12 @@ from scipy import stats
 from report_part2 import first_type_error
 
 
-def exp_likelihood_ratio_test(data, theta0):
+def exp_likelihood_ratio_test(data,delta, theta0):
     #n = len(data)
-    r = np.sum(data < np.max(data))
+    r = np.sum(delta)
     data = np.sort(data)
-    data_uncenzored = data[:r]
-    s = np.sum(data_uncenzored)  
-    #t0 = data_uncenzored[-1]
-    theta_hat = r / s
+    s = np.sum(data)  
+    theta_hat = r / s if r > 0 else 1e-6
 
     def log_likelihood(theta, r, s):
         if theta <= 0:
@@ -35,14 +33,13 @@ n2 = 50
 N = 10000
 
 
-def exp_likelihood_ratio_power_test(data, theta0, test_type, alpha = 0.05):
+def exp_likelihood_ratio_power_test(data, delta, theta0, test_type, alpha = 0.05, t0 = 1):
     #n = len(data)
-    r = np.sum(data < np.max(data))
+    r = np.sum(delta)
     data = np.sort(data)
-    data_uncenzored = data[:r]
-    s = np.sum(data_uncenzored)  
+    s = np.sum(data)  
     #t0 = data_uncenzored[-1]
-    theta_hat = r / s
+    theta_hat = r / s if r > 0 else 1e-6
 
     def log_likelihood(theta, r, s):
         if theta <= 0:
@@ -59,9 +56,13 @@ def exp_likelihood_ratio_power_test(data, theta0, test_type, alpha = 0.05):
     if test_type == "a":
         return p_value < alpha
     elif test_type == "b":
-        return (theta_hat > theta0) and (p_value < alpha)
+        if theta_hat <= theta0:
+            return False
+        return (p_value / 2) < alpha
     elif test_type == "c":
-        return (theta_hat < theta0) and (p_value < alpha)
+        if theta_hat >= theta0:
+            return False
+        return (p_value / 2) < alpha
 
 temp = [(0.8,"a"), (1.2,"a"), (1.8,"a"), (2.1,"a"), (1.5,"b"), (2.0,"b"), (2.2,"b"), (3.0,"c"), (2.2,"c"), (2.1, "c")]
 
@@ -69,19 +70,19 @@ ext = []
 for  (theta, test_type) in temp:
     reject_count = 0
     for _ in range(N):
-        data1 = first_type_error(t0, n=n1, lambdaa=theta0, alpha=1)
-        if exp_likelihood_ratio_power_test(data1, theta, test_type, alpha=0.05):
+        data1, delta1 = first_type_error(t0, n=n1, lambdaa=theta, alpha=1)
+        if exp_likelihood_ratio_power_test(data1, delta1, theta0, test_type, alpha=0.05):
             reject_count += 1
     power = reject_count / N
     #print(f'Moc testu dla θ={theta}, typ={test_type}: n = 20 {power:.4f}')
     ext.append((theta, test_type, power))
 
-print("\n")
+
 for  (theta, test_type) in temp:
     reject_count = 0
     for _ in range(N):
-        data1 = first_type_error(t0, n=n2, lambdaa=theta0, alpha=1)
-        if exp_likelihood_ratio_power_test(data1, theta, test_type, alpha=0.05):
+        data1, delta1 = first_type_error(t0, n=n2, lambdaa=theta, alpha=1)
+        if exp_likelihood_ratio_power_test(data1, delta1, theta0, test_type, alpha=0.05):
             reject_count += 1
     power = reject_count / N
     #print(f'Moc testu dla θ={theta}, typ={test_type}: n = 50 {power:.4f}')
@@ -130,6 +131,8 @@ bez_remisji_B = np.array([
 A = np.concatenate((remisja_A, bez_remisji_A))
 B = np.concatenate((remisja_B, bez_remisji_B))
 
+delta_A = np.array([1]*10 + [0]*10)
+delta_B = np.array([1]*10 + [0]*10)
 
 # print(exp_likelihood_ratio_test(A, 1))
 # p-value 0.0043 
@@ -159,8 +162,8 @@ def przeslij_dane4():
         moce_n50[key] = power
     
     # p-values dla leków
-    p_value_A = exp_likelihood_ratio_test(A, 1)
-    p_value_B = exp_likelihood_ratio_test(B, 1)
+    p_value_A = exp_likelihood_ratio_test(A, delta_A, 1)
+    p_value_B = exp_likelihood_ratio_test(B, delta_B, 1)
     
     return {
         'moce_n20': moce_n20,

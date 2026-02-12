@@ -56,7 +56,7 @@ def estimator_type1(data):
     m = np.sum(data < np.max(data))
     data = np.sort(data)
     data_uncenzored = data[:m]
-    return len(data_uncenzored) / (np.sum(data_uncenzored) + (len(data) - len(data_uncenzored)))
+    return (np.sum(data_uncenzored) + (len(data) - len(data_uncenzored)) * np.max(data)) / len(data_uncenzored)
 
 #print(f'Estymator leku A: {estimator_type1(A)}') #0.70
 #print(f'Estymator leku B: {estimator_type1(B)}') #0.74
@@ -85,14 +85,12 @@ def confidence_interval_type1(data, alpha, t0=1.0):
 # do przedzialu ufności
 
 # 2A
-
-
 def estimator_type2(data):
     n = len(data)
     m = np.sum(data < np.max(data))
     data = np.sort(data)
     data_uncenzored = data[:m]
-    return m / (np.sum(data_uncenzored) + ((n - m)*data_uncenzored[-1]))
+    return (np.sum(data_uncenzored) + ((n - m)*data_uncenzored[-1])) / m
 
 #print(f'Estymator leku A cenzored: {estimator_type2(A)}') #0.73
 #print(f'Estymator leku B cenzored: {estimator_type2(B)}') #0.96
@@ -114,61 +112,67 @@ def confidence_interval_type2(data, alpha, t0 =1.0):
     data = np.sort(data)
     data_uncenzored = data[:m]
 
-    sum_di = 0
-    for i in range(len(data_uncenzored)):
-        sum_di += (len(data) - i + 1) * (data_uncenzored[i] - data_uncenzored[i - 1]) if i > 0 else (len(data) - i + 1) * data_uncenzored[i]
-
-    sum_Di = np.sum(data_uncenzored) + (n - m) * data[m - 1]
+    sum_di = np.sum(data_uncenzored) + (n - m) * data[m - 1]
     temp_L = gamma.ppf(alpha / 2, a=m, scale=1/m)
     temp_U = gamma.ppf(1 - (alpha / 2), a=m, scale=1/m) 
-    theta_U = 1 / (((m / sum_Di) * temp_L) / t0)
-    theta_L = 1 / (((m / sum_Di) * temp_U) / t0)
-
+    theta_L = 1 / (((m / sum_di) * temp_L) / t0)
+    theta_U = 1 / (((m / sum_di) * temp_U) / t0)
     return theta_L, theta_U
+
 
 #print(confidence_interval_type2(A, 0.05))
 #print(confidence_interval_type2(B, 0.05))
 #print(confidence_interval_type2(A, 0.01))
 #print(confidence_interval_type2(B, 0.01))
-
 np.random.seed(42)
-temp1 = first_type_error(0.5, n=10)
-temp2 = first_type_error(0.5, n=30)
-temp3 = first_type_error(1.2, n=10)
-temp4 = first_type_error(1.2, n=30)
 
-#print(temp1, temp2, temp3, temp4)
+def esttheta1(data, delta):
+    R = np.sum(delta)
+    T1 = np.sum(data)
+    if T1 > 0:
+        return R / T1  
+    else: return 0
 
-def Bias_variance(estimator, true_value):
-    bias = estimator - true_value
-    return bias
+def esttheta2(data, delta, t0):
+    n = len(data)
+    R = np.sum(delta)
+    if R < n:
+        return -np.log(1 - R/n) /t0
+    else: return 0
 
-def MSE(estimator,data, true_value):
-    bias = estimator - true_value
-    variance = (estimator - np.mean(data))**2
-    mse = bias**2 + variance
-    return mse
+def sim(t0, n, lambdaa, true_value, n_sim = 10000):
+    temp1 = []
+    temp2 = []
+    
+    for _ in range(n_sim):
+        ext, delta = first_type_error(t0, n=n, lambdaa=lambdaa, alpha=1)
+        theta1 = esttheta1(ext, delta)
+        theta2 = esttheta2(ext, delta, t0)
+        temp1.append(theta1)
+        temp2.append(theta2)
+    
+    bias1 = np.mean(temp1) - true_value
+    bias2 = np.mean(temp2) - true_value
+    mse1 = np.mean((np.array(temp1) - true_value)**2)
+    mse2 = np.mean((np.array(temp2) - true_value)**2)
+    
+    return bias1, bias2, mse1, mse2
 
-bias1 = Bias_variance(estimator_type1(temp1), 0.5)
-bias2 = Bias_variance(estimator_type2(temp1), 0.5)
-bias3 = Bias_variance(estimator_type1(temp2), 0.5)
-bias4 = Bias_variance(estimator_type2(temp2), 0.5)
-bias5 = Bias_variance(estimator_type1(temp3), 1.2)
-bias6 = Bias_variance(estimator_type2(temp3), 1.2)
-bias7 = Bias_variance(estimator_type1(temp4), 1.2)
-bias8 = Bias_variance(estimator_type2(temp4), 1.2)
-# print(f'bias1: {bias1}, bias2: {bias2}, bias3: {bias3}, bias4: {bias4}, bias5: {bias5}, bias6: {bias6}, bias7: {bias7}, bias8: {bias8}')
+# Symulacje
+bias1, bias2, mse1, mse2 = sim(0.5, 10, 1, 1)
+bias3, bias4, mse3, mse4 = sim(0.5, 30, 1, 1)
+bias5, bias6, mse5, mse6 = sim(1, 10, 1, 1)
+bias7, bias8, mse7, mse8 = sim(1, 30, 1, 1)
+bias9, bias10, mse9, mse10 = sim(2, 10, 1, 1)
+bias11, bias12, mse11, mse12 = sim(2, 30, 1, 1)
 
-mse1 = MSE(estimator_type1(temp1), temp1, 0.5)
-mse2 = MSE(estimator_type2(temp1), temp1, 0.5)
-mse3 = MSE(estimator_type1(temp2), temp2, 0.5)
-mse4 = MSE(estimator_type2(temp2), temp2, 0.5)
-mse5 = MSE(estimator_type1(temp3), temp3, 1.2)
-mse6 = MSE(estimator_type2(temp3), temp3, 1.2)
-mse7 = MSE(estimator_type1(temp4), temp4, 1.2)
-mse8 = MSE(estimator_type2(temp4), temp4, 1.2)
-# print(f'mse1: {mse1}, mse2: {mse2}, mse3: {mse3}, mse4: {mse4}, mse5: {mse5}, mse6: {mse6}, mse7: {mse7}, mse8: {mse8}')
 
+#print(f'\nn=10, t0=0.5: Bias(θ̂)={bias1:.4f}, Bias(θ̃)={bias2:.4f}, MSE(θ̂)={mse1:.4f}, MSE(θ̃)={mse2:.4f}')
+#print(f'n=10, t0=1.0: Bias(θ̂)={bias3:.4f}, Bias(θ̃)={bias4:.4f}, MSE(θ̂)={mse3:.4f}, MSE(θ̃)={mse4:.4f}')
+#print(f'n=10, t0=2.0: Bias(θ̂)={bias5:.4f}, Bias(θ̃)={bias6:.4f}, MSE(θ̂)={mse5:.4f}, MSE(θ̃)={mse6:.4f}')
+#print(f'n=30, t0=0.5: Bias(θ̂)={bias7:.4f}, Bias(θ̃)={bias8:.4f}, MSE(θ̂)={mse7:.4f}, MSE(θ̃)={mse8:.4f}')
+#print(f'n=30, t0=1.0: Bias(θ̂)={bias9:.4f}, Bias(θ̃)={bias10:.4f}, MSE(θ̂)={mse9:.4f}, MSE(θ̃)={mse10:.4f}')
+#print(f'n=30, t0=2.0: Bias(θ̂)={bias11:.4f}, Bias(θ̃)={bias12:.4f}, MSE(θ̂)={mse11:.4f}, MSE(θ̃)={mse12:.4f}')
 
 def przeslij_dane3():
     """
@@ -198,6 +202,10 @@ def przeslij_dane3():
         'bias6': bias6,
         'bias7': bias7,
         'bias8': bias8,
+        'bias9': bias9,
+        'bias10': bias10,
+        'bias11': bias11,
+        'bias12': bias12,
         'mse1': mse1,
         'mse2': mse2,
         'mse3': mse3,
@@ -205,7 +213,11 @@ def przeslij_dane3():
         'mse5': mse5,
         'mse6': mse6,
         'mse7': mse7,
-        'mse8': mse8
+        'mse8': mse8,
+        'mse9': mse9,
+        'mse10': mse10,
+        'mse11': mse11,
+        'mse12': mse12
     }
 
 

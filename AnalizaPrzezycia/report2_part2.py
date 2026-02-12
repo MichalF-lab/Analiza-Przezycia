@@ -20,7 +20,7 @@ def Fleming_Harrington(dane, t=0):
     dane = np.sort(dane)
     dane_uncenzored = dane[:m]
     for i in range(m):
-        if dane_uncenzored[i] > t:
+        if dane_uncenzored[i] > t: 
             break
         wynik += 1 / (n - i)
     return np.exp(-wynik)
@@ -32,7 +32,7 @@ def mean_survival_KM(dane):
     area, _ = quad(lambda t: Kaplan_Meier(dane, t), 0, t_max, limit=100)
 
     s_max = Kaplan_Meier(dane, t_max)
-    theta = -1 / np.log(s_max)
+    theta = -t_max / np.log(s_max)
     tail = s_max * theta
     return area + tail
 
@@ -43,7 +43,7 @@ def mean_survival_FH(dane):
     area, _ = quad(lambda t: Fleming_Harrington(dane, t), 0, t_max, limit=100)
     
     s_max = Fleming_Harrington(dane, t_max)
-    theta = -1 / np.log(s_max)
+    theta = -t_max / np.log(s_max)
     tail = s_max * theta
     return area + tail
 
@@ -90,10 +90,46 @@ bez_remisji_B = np.array([
 A = np.concatenate((remisja_A, bez_remisji_A))
 B = np.concatenate((remisja_B, bez_remisji_B))
 
-print("Dane dla leku A:")
-print("Kaplan-Meier z ogonem:", mean_survival_KM(A))
-print("Fleming-Harrington z ogonem:", mean_survival_FH(A))
+#print("Dane dla leku A:")
+#print("Kaplan-Meier z ogonem:", mean_survival_KM(A))
+#print("Fleming-Harrington z ogonem:", mean_survival_FH(A))
 
-print("\nDane dla leku B:")
-print("Kaplan-Meier z ogonem:", mean_survival_KM(B))
-print("Fleming-Harrington z ogonem:", mean_survival_FH(B))
+#print("\nDane dla leku B:")
+#print("Kaplan-Meier z ogonem:", mean_survival_KM(B))
+#print("Fleming-Harrington z ogonem:", mean_survival_FH(B))
+
+def przeslij_dane2():
+    """Zwraca dane dla Listy 6 - średni czas życia"""
+    print("   📊 Lista 6: Obliczanie średnich czasów życia...")
+    
+
+    mean_A_KM = mean_survival_KM(A)
+    mean_A_FH = mean_survival_FH(A)
+    diff_A = abs(mean_A_KM - mean_A_FH)
+    
+
+    mean_B_KM = mean_survival_KM(B)
+    mean_B_FH = mean_survival_FH(B)
+    diff_B = abs(mean_B_KM - mean_B_FH)
+   
+
+    max_diff = max(diff_A, diff_B)
+    if max_diff < 0.1:
+        porownanie = "Wartości oszacowań uzyskane obiema metodami są bardzo zbliżone (różnica < 0.1), " \
+                    "co potwierdza stabilność wyników. Oba estymatory dobrze aproksymują średni czas do remisji."
+    else:
+        porownanie = f"Zauważalna różnica między metodami (max. różnica: {max_diff:.4f}). " \
+                    "Estymator Fleminga-Harringtona często daje nieco inne wartości w przypadku silnego cenzurowania."
+    
+    print("✓ Lista 6 - Gotowe!")
+    
+    return {
+        'mean_A_KM': f'{mean_A_KM:.4f}',
+        'mean_A_FH': f'{mean_A_FH:.4f}',
+        'diff_A': f'{diff_A:.4f}',
+        'mean_B_KM': f'{mean_B_KM:.4f}',
+        'mean_B_FH': f'{mean_B_FH:.4f}',
+        'diff_B': f'{diff_B:.4f}',
+        'porownanie_mean': porownanie
+    }
+

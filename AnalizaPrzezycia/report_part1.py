@@ -27,7 +27,6 @@ def wykres_do_base64(fig):
     fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
     buf.seek(0)
     img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-    plt.close(fig)
     return f"data:image/png;base64,{img_base64}"
 
 def wzor_do_base64(wzor_latex, tytul_wzoru):
@@ -117,12 +116,12 @@ def wykres_liniowy():
 
 np.random.seed(42)
 
-def qEW(p, alpha, beta, gamma):
-    return beta * (-np.log(1 - p**(1/gamma)))**(1/alpha)
+def qEW(u, alpha, beta, gamma):
+    return beta * (-np.log(1 - u**(1/gamma)))**(1/alpha)
 
-def rEW(count, alpha, beta, gamma):
-    uniform_samples = np.random.uniform(0, 1, size=count)
-    return qEW(uniform_samples, alpha, beta, gamma)
+def rEW(size, alpha, beta, gamma):
+    u = np.random.uniform(0, 1, size)
+    return qEW(u, alpha, beta, gamma)
 
 data1 = rEW(50, 2, 4, 3)
 data2 = rEW(100, 2, 4, 3)
@@ -323,7 +322,7 @@ def przeslij_dane1():
     print("\n✍️ Generowanie wzorów matematycznych:")
     
     # Funkcja gęstości (PDF)
-    wzor_pdf_latex = r'f(x) = \gamma \frac{\alpha}{\beta} \left(\frac{x}{\beta}\right)^{\alpha-1} (1-e^{-\left(\frac{x}{\beta}\right)^\alpha})^{\gamma -1}, \quad x \geq \gamma'
+    wzor_pdf_latex = r'f(x)=\frac{\alpha\gamma}{\beta}\left(\frac{x}{\beta}\right)^{\alpha-1}\left[1-\exp\!\left(-\left(\frac{x}{\beta}\right)^{\alpha}\right)\right]^{\gamma-1}\exp\!\left(-\left(\frac{x}{\beta}\right)^{\alpha}\right)\mathbf{1}_{(0,\infty)}(x)'
     wzor_pdf = wzor_do_base64(wzor_pdf_latex, "Funkcja gęstości (PDF)")
     
     # Dystrybuanta (CDF)

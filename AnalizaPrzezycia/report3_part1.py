@@ -1,7 +1,9 @@
 import math
 import pandas as pd
 import numpy as np
-from report_part1 import wzor_do_base64 # 1 2
+import os
+from report_part1 import wykres_do_base64 # 1 2
+
 def wczyuj_i_przygotuj_dane_lung(): 
     url = "https://vincentarelbundock.github.io/Rdatasets/csv/survival/cancer.csv"
     lung = pd.read_csv(url)
@@ -43,9 +45,9 @@ def wczytaj_i_przygotuj_dane_pacjentki(ph = 1):
     # Definicja profilu pacjenta z CENTROWANYMI wartościami
     patient_profile = pd.DataFrame({
         'sex': [1],                      # 1 = kobieta (po mapowaniu 2->1)
-        'ph.ecog_1.0': [ph],
-        'ph.ecog_2.0': [ph - 1],
-        'ph.ecog_3.0': [0],
+        'ph.ecog_1.0': [1 if ph == 1 else 0],
+        'ph.ecog_2.0': [1 if ph == 2 else 0],
+        'ph.ecog_3.0': [1 if ph == 3 else 0],
         'age': [70 - age_mean],          # WYCENTROWANY wiek
         'ph.karno': [90 - ph_karno_mean] # WYCENTROWANE ph.karno
     })
@@ -60,6 +62,7 @@ prob_survival = survival_function.loc[300].values[0]
 
 # 4
 import matplotlib.pyplot as plt
+
 def fig1():
     plt.figure(figsize=(10, 6))
     plt.plot(survival_function.index, survival_function.values)
@@ -67,133 +70,139 @@ def fig1():
                 label=f'S(300) = {prob_survival:.4f}')
     plt.axvline(x=300, color='r', linestyle='--', alpha=0.5)
     plt.xlabel('Czas (dni)')
-    plt.ylabel('Prawdopodobieństwo przeżycia S(t)')
-    plt.title('Funkcja przeżycia dla kobiety, wiek=70, ph.ecog=1, ph.karno=90')
+    plt.ylabel('Prawdopodobienstwo przezycia S(t)')
+    plt.title('Funkcja przezycia dla kobiety, wiek=70, ph.ecog=1, ph.karno=90')
     plt.legend()
     plt.grid(True, alpha=0.3)
-    return wzor_do_base64(plt)
-
-# 5 6 
-fit_aft = WeibullAFTFitter().fit(lung_encoded, duration_col='time', event_col='status', formula='sex + ph.ecog_1.0 + ph.ecog_2.0 + ph.ecog_3.0 + age + ph.karno')
-params = fit_aft.params_
-rho = np.exp(params['rho_'])
-sigma = 1 / rho
-
-#print(f"rho = {rho.values[0]:.4f}")
-#print(f"sigma = {sigma.values[0]:.4f}")
-
-# Współczynniki gamma z modelu AFT (bez rho_ i lambda_)
-gamma = params.drop(['rho_', 'lambda_'])
-#print(gamma)
-
-# Przekształcenie na współczynniki beta modelu PH: beta = -gamma/sigma
-beta = -gamma / sigma.values[0]
-#print(beta)
-# najpierw dajemy parametry dopiero pozniej zmieniamy bete
-
-# 7
-patient1 , patient2 = wczytaj_i_przygotuj_dane_pacjentki(ph=1), wczytaj_i_przygotuj_dane_pacjentki(ph=2)
+    return plt
 
 
-survival_function1 = fit_aft.predict_survival_function(patient1)
-survival_function2 = fit_aft.predict_survival_function(patient2)
+# ... (wcześniejszy kod z importami i fit_aft zostaje)
 
-#cumulative_hazard1 = fit_aft.predict_cumulative_hazard(patient1)
-#cumulative_hazard2 = fit_aft.predict_cumulative_hazard(patient2)
-#
-#hazard_function1 = cumulative_hazard1.diff().fillna(0)
-#hazard_function2 = cumulative_hazard2.diff().fillna(0)
+def wczytaj_dane_z_r():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    dane = {
+        'baseline_survival': pd.read_csv(os.path.join(script_dir, 'baseline_survival.csv')),
+        'baseline_cumhazard': pd.read_csv(os.path.join(script_dir, 'baseline_cumhazard.csv')),
+        'baseline_hazard': pd.read_csv(os.path.join(script_dir, 'baseline_hazard.csv')),  
+        'survival_ph1': pd.read_csv(os.path.join(script_dir, 'survival_ph1.csv')),
+        'survival_ph2': pd.read_csv(os.path.join(script_dir, 'survival_ph2.csv')),
+        'cumhazard_ph1': pd.read_csv(os.path.join(script_dir, 'cumhazard_ph1.csv')),
+        'cumhazard_ph2': pd.read_csv(os.path.join(script_dir, 'cumhazard_ph2.csv')),
+        'hazard_ph1': pd.read_csv(os.path.join(script_dir, 'hazard_ph1.csv')), 
+        'hazard_ph2': pd.read_csv(os.path.join(script_dir, 'hazard_ph2.csv'))  
+    }
+    
+    return dane
 
-def hazard_from_survival(S_df, epsilon=1e-8):
-    S = S_df.iloc[:, 0].values
-    t = S_df.index.values
-    return -np.gradient(np.log(S + epsilon), t)
-
-hazard_function1 = hazard_from_survival(survival_function1)
-hazard_function2 = hazard_from_survival(survival_function2)
-
-lnhazard_function1 = np.log(hazard_function1)
-lnhazard_function2 = np.log(hazard_function2)
-
-t1 = survival_function1.index.values
-t2 = survival_function2.index.values
-
-def fig2():
+def fig2(dane):
+    t1 = dane['hazard_ph1']['time'].values
+    t2 = dane['hazard_ph2']['time'].values
+    hazard1 = dane['hazard_ph1']['value'].values
+    hazard2 = dane['hazard_ph2']['value'].values
+    
     plt.figure(figsize=(10, 6))
-    plt.plot(t1, hazard_function1, label="ph=1")
-    plt.plot(t2, hazard_function2, label="ph=2")
-    plt.xlabel("Czas (dni)")
-    plt.ylabel("Hazard h(t)")
-    plt.title("Funkcja hazardu – kobieta, wiek=70, ph.karno=90")
-    plt.legend()
+    plt.plot(t1, hazard1, 'b-', linewidth=2, label="ph.ecog=1")
+    plt.plot(t2, hazard2, 'r-', linewidth=2, label="ph.ecog=2")
+    plt.xlabel("Czas (dni)", fontsize=12)
+    plt.ylabel("Hazard h(t)", fontsize=12)
+    plt.title("Funkcja hazardu – kobieta, wiek=70, ph.karno=90", 
+              fontsize=14, fontweight='bold')
+    plt.legend(fontsize=11)
     plt.grid(True, alpha=0.3)
-    return wzor_do_base64(plt)
+    return wykres_do_base64(plt)
 
-def fig3():
+def fig3(dane):
+    hazard1 = dane['hazard_ph1']['value'].values
+    hazard2 = dane['hazard_ph2']['value'].values
+    
+    epsilon = 1e-10
+    lnhazard1 = np.log(hazard1 + epsilon)
+    lnhazard2 = np.log(hazard2 + epsilon)
+    
+    t1 = dane['hazard_ph1']['time'].values
+    t2 = dane['hazard_ph2']['time'].values
+    
     plt.figure(figsize=(10, 6))
-    plt.plot(t1, lnhazard_function1, label="ph=1")
-    plt.plot(t2, lnhazard_function2, label="ph=2")
-    plt.xlabel("Czas (dni)")
-    plt.ylabel("ln h(t)")
-    plt.title("Logarytm funkcji hazardu – kobieta, wiek=70, ph.karno=90")
-    plt.legend()
+    plt.plot(t1, lnhazard1, 'b-', linewidth=2, label="ph.ecog=1")
+    plt.plot(t2, lnhazard2, 'r-', linewidth=2, label="ph.ecog=2")
+    plt.xlabel("Czas (dni)", fontsize=12)
+    plt.ylabel("ln h(t)", fontsize=12)
+    plt.title("Logarytm funkcji hazardu – kobieta, wiek=70, ph.karno=90", 
+              fontsize=14, fontweight='bold')
+    plt.legend(fontsize=11)
     plt.grid(True, alpha=0.3)
-    return wzor_do_base64(plt)
+    return wykres_do_base64(plt)
+
+def survival_at_time(survival_df, t_star):
+    times = survival_df['time'].values
+    values = survival_df['value'].values
+    return np.interp(t_star, times, values)
 
 
-# 8 9 
 def fig4():
-    prob_survival = survival_function1.loc[300].values[0]
+    dane = wczytaj_dane_z_r()
+    
+    t_star = 300
+    prob_survival1 = survival_at_time(dane['survival_ph1'], t_star)
+    prob_survival2 = survival_at_time(dane['survival_ph2'], t_star)
+    
     plt.figure(figsize=(10, 6))
-    plt.plot(survival_function1.index, survival_function1.values)
-    plt.plot(survival_function2.index, survival_function2.values)
-    plt.xlabel('Czas (dni)')
-    plt.ylabel('Prawdopodobieństwo przeżycia S(t)')
-    plt.title('Funkcja przeżycia dla kobiety, wiek=70, ph.ecog=1, ph.karno=90')
-    plt.axhline(y=prob_survival, color='r', linestyle='--', 
-                label=f'S(300) = {prob_survival:.4f}')
-    plt.legend()
+    plt.plot(dane['survival_ph1']['time'], 
+             dane['survival_ph1']['value'], 
+             'b-', linewidth=2.5, label='ph.ecog=1')
+    plt.plot(dane['survival_ph2']['time'], 
+             dane['survival_ph2']['value'], 
+             'r-', linewidth=2.5, label='ph.ecog=2')
+    plt.axhline(y=prob_survival1, color='b', linestyle='--', alpha=0.5,
+                label=f'S₁(300) = {prob_survival1:.4f}')
+    plt.axhline(y=prob_survival2, color='r', linestyle='--', alpha=0.5,
+                label=f'S₂(300) = {prob_survival2:.4f}')
+    plt.axvline(x=300, color='green', linestyle='--', alpha=0.5)
+    plt.scatter([300, 300], [prob_survival1, prob_survival2], 
+                color=['blue', 'red'], s=100, zorder=5)
+    plt.xlabel('Czas (dni)', fontsize=12)
+    plt.ylabel('Prawdopodobieństwo przeżycia S(t)', fontsize=12)
+    plt.title('Funkcje przeżycia – kobieta, wiek=70, ph.karno=90',
+              fontsize=14, fontweight='bold')
+    plt.legend(fontsize=11)
     plt.grid(True, alpha=0.3)
-    return wzor_do_base64(plt)
+    plt.ylim([0, 1])
+    return plt
 
+def fig5():
+    plt = fig1()
+    dane = wczytaj_dane_z_r()
+    t_star = 300
+    prob_survival1 = survival_at_time(dane['survival_ph1'], t_star)
+    plt.plot(dane['survival_ph1']['time'], 
+             dane['survival_ph1']['value'], 
+             'b-', linewidth=2.5, label='ph.ecog=1')
+    plt.axhline(y=prob_survival1, color='b', linestyle='--', alpha=0.5,
+                label=f'S₁(300) = {prob_survival1:.4f}')
+    plt.axvline(x=300, color='green', linestyle='--', alpha=0.5)
+    plt.xlabel('Czas (dni)', fontsize=12)
+    plt.ylabel('Prawdopodobieństwo przeżycia S(t)', fontsize=12)
+    plt.title('Funkcje przeżycia – kobieta, wiek=70, ph.karno=90',
+              fontsize=14, fontweight='bold')
+    plt.legend(fontsize=11)
+    plt.grid(True, alpha=0.3)
+    plt.ylim([0, 1])
+    return plt
 
-# zad 9
-def survival_at_time(S_df, t):
-    times = S_df.index.values
-    values = S_df.iloc[:, 0].values
-    return np.interp(t, times, values)
-t_star = 300
-
-prob_survival1 = survival_at_time(survival_function1, t_star)
-prob_survival2 = survival_at_time(survival_function2, t_star)
-
-#print(f"P(T > 300) dla ph=1: {prob_survival1:.4f} ({prob_survival1*100:.2f}%)")
-#print(f"P(T > 300) dla ph=2: {prob_survival2:.4f} ({prob_survival2*100:.2f}%)")
 
 def przeslij_dane1():
-    fit_aft = fit_aft.summary
-    prob_survival = prob_survival
-    fig1 = fig1()
-    rho = rho.values[0]
-    sigma = sigma.values[0]
-    gamma = gamma
-    beta = beta
-    fig2 = fig2()
-    fig3 = fig3()
-    fig4 = fig4()
-    prob_survival1 = prob_survival1
-    prob_survival2 = prob_survival2
+    dane_r = wczytaj_dane_z_r()
+    
     return {
-        "fit_aft": fit_aft,
+        "fit_aft": fit_aft.summary,
         "prob_survival": prob_survival,
-        "fig1": fig1,
-        "rho": rho,
-        "sigma": sigma,
-        "gamma": gamma,
-        "beta": beta,
-        "fig2": fig2,
-        "fig3": fig3,
-        "fig4": fig4,
-        "prob_survival1": prob_survival1,
-        "prob_survival2": prob_survival2
+        "fig1": wykres_do_base64(fig1()),
+        "fig2": fig2(dane_r),
+        "fig3": fig3(dane_r),
+        "fig4": wykres_do_base64(fig4()),
+        "fig5": wykres_do_base64(fig5()),
+        "prob_survival1": survival_at_time(dane_r['survival_ph1'], 300),
+        "prob_survival2": survival_at_time(dane_r['survival_ph2'], 300)
     }

@@ -1,0 +1,428 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Raport Analizy Przeżycia</title>
+</head>
+<body>
+    <!-- NAGŁÓWEK -->
+    <div class="header">
+        <h1>Raport Analizy Przeżycia</h1>
+        <p class="date">Data wygenerowania: {{DATA}}</p>
+        <p class="subtitle">Michał Frąckowiak 275951</p>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- LISTA 5 -->
+    <!-- ========================================================================== -->
+    <div class="section">
+        <h1>Lista 5: Estymatory Kaplana-Meiera i Fleminga-Harringtona</h1>
+
+        <h2>Zadanie 1: Estymatory funkcji przeżycia dla leków A i B</h2>
+
+        <h3>1a) Estymator Kaplana-Meiera</h3>
+        <p>
+            Wygląda na to, że różnice między lekiem A a lekiem B są minimalne, co może sugerować podobną skuteczność w badanym okresie.
+        </p>
+        <div class="chart-container">
+            <img src="{{WYKRES_KM_AB}}" alt="Estymator Kaplana-Meiera dla leków A i B">
+        </div>
+        <br>
+        <br>
+        <br>
+        <br>
+        <h3>1b) Estymator Fleminga-Harringtona</h3>
+        <p>
+            Wyniki testu Fleminga-Harringtona potwierdzają, że nie ma wyraźnej różnicy między grupami. To sugeruje, że obserwowane efekty leczenia są zbliżone niezależnie od metody analizy.
+
+        </p>
+        <div class="chart-container">
+            <img src="{{WYKRES_FH_AB}}" alt="Estymator Fleminga-Harringtona dla leków A i B">
+        </div>
+
+        <p>
+            <strong>Wnioski:</strong> {{WNIOSKI_LEKI_AB}}
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>Zadanie 2: Estymatory Kaplana-Meiera z ogonem wykładniczym</h2>
+        <p>
+            Metoda Browna, Hollandera i Kowara polega na estymacji "ogona" funkcji przeżycia
+            (tj. wartości poza ostatnią obserwacją) przy założeniu rozkładu wykładniczego.
+            Parametr θ ogona wykładniczego szacujemy na podstawie wartości estymatora w ostatnim
+            zaobserwowanym punkcie.
+        </p>
+
+
+        <h3>Wykresy z ogonem wykładniczym</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_KM_OGON_AB}}" alt="KM z ogonem dla leków A i B">
+        </div>
+
+        <p>
+            Przerywane linie przedstawiają ekstrapolację funkcji przeżycia poza zakres
+            obserwacji (t > 1.0), zgodnie z propozycją Browna, Hollandera i Kowara.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Lek</th>
+                    <th>S(t_max)</th>
+                    <th>θ (parametr ogona)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Lek A</td>
+                    <td>{{S_MAX_A}}</td>
+                    <td>{{THETA_A}}</td>
+                </tr>
+                <tr>
+                    <td>Lek B</td>
+                    <td>{{S_MAX_B}}</td>
+                    <td>{{THETA_B}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Zadanie 3: Normalność asymptotyczna estymatora Kaplana-Meiera</h2>
+        <p>
+            W celu zbadania własności asymptotycznych estymatora Kaplana-Meiera wygenerowano
+            M = 1000 zbiorów danych cenzurowanych I-go typu z rozkładu GE(λ=1.5, α=2.0)
+            dla n = 30, 50, 100, gdzie t₀ ≈ E(X) = 0.723.
+        </p>
+
+        <h3>Histogramy oszacowań S(t₀)</h3>
+        <p>
+            Histogramy wskazują, że dane są w przybliżeniu zgodne z rozkładem normalnym.
+        </p>
+        <div class="chart-container">
+            <img src="{{WYKRES_HIST_T0}}" alt="Histogramy dla S(t0)">
+        </div>
+
+        <h3>Histogramy oszacowań S(2t₀)</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_HIST_2T0}}" alt="Histogramy dla S(2t0)">
+        </div>
+        <p>
+            Z wykresu widać, że przedstawione histogramy mają kształt zbliżony do rozkładu normalnego szcególnie dla t0. 
+            Wraz ze wzrostem liczby obserwacji rozkład zmiennej dąży do normalności
+        </p>
+
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- LISTA 6 -->
+    <!-- ========================================================================== -->
+    <div class="section">
+        <h1>Lista 6: Estymacja średniego czasu życia</h1>
+
+        <h2>Zadanie 1: Program do estymacji średniego czasu życia</h2>
+        <p>
+            Średni czas życia estymujemy jako pole pod krzywą funkcji przeżycia.
+            Dla danych cenzurowanych stosujemy metodę z ogonem wykładniczym.
+        </p>
+
+        <h3>1a) Estymator oparty na Kaplanie-Meierze</h3>
+        <div class="code-block">
+            <pre><code>
+def mean_survival_KM(dane):
+    m = np.sum(dane < np.max(dane))
+    t_max = np.max(dane)
+    
+    area, _ = quad(lambda t: Kaplan_Meier(dane, t), 0, t_max, limit=100)
+
+    s_max = Kaplan_Meier(dane, t_max)
+    theta = -t_max / np.log(s_max) if s_max > 0 else 1
+    tail = s_max * theta
+    
+    return area + tail
+            </code></pre>
+        </div>
+
+        <h3>1b) Estymator oparty na Flemingu-Harringtonie</h3>
+        <div class="code-block">
+            <pre><code>
+def mean_survival_FH(dane):
+    m = np.sum(dane < np.max(dane))
+    t_max = np.max(dane)
+    
+    area, _ = quad(lambda t: Fleming_Harrington(dane, t), 0, t_max, limit=100)
+    
+    s_max = Fleming_Harrington(dane, t_max)
+    theta = -t_max / np.log(s_max) if s_max > 0 else 1
+    tail = s_max * theta
+    
+    return area + tail
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Zadanie 2: Oszacowania średnich czasów do remisji</h2>
+        <p>
+            Na podstawie danych dla leków A i B oszacowano średnie
+            czasy do remisji choroby przy użyciu obu metod.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Lek</th>
+                    <th>Kaplan-Meier z ogonem</th>
+                    <th>Fleming-Harrington z ogonem</th>
+                    <th>Różnica</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Lek A</td>
+                    <td>{{MEAN_A_KM}}</td>
+                    <td>{{MEAN_A_FH}}</td>
+                    <td>{{DIFF_A}}</td>
+                </tr>
+                <tr>
+                    <td>Lek B</td>
+                    <td>{{MEAN_B_KM}}</td>
+                    <td>{{MEAN_B_FH}}</td>
+                    <td>{{DIFF_B}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            <strong>Porównanie:</strong> {{POROWNANIE_MEAN}}
+        </p>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- LISTA 7 -->
+    <!-- ========================================================================== -->
+    <div class="section">
+        <h1>Lista 7: Przedziały ufności dla średniego czasu życia</h1>
+
+        <h2>Zadanie 1: Funkcja do konstrukcji przedziałów ufności</h2>
+
+        <div class="code-block">
+            <pre><code>
+def ri(dane, si):
+    t = dane[0]
+    return np.sum(t >= si)
+
+
+def di(dane, si):
+    t = dane[0]
+    delta = dane[1]
+    return np.sum((t == si) & (delta == 1))
+
+def Kaplan_Meier(dane, t=0):
+    wynik = 1
+    m = np.unique(dane[0][(dane[1] == 1) & (dane[0] <= t)])
+    for i in m:
+        n = ri(dane, i)
+        d = di(dane, i)
+        wynik *= (1 - d / n)
+    return wynik
+
+def mean_survival_KM(si, dane, tau):
+    area, _ = quad(lambda k: Kaplan_Meier(dane,k), si, tau, limit=100)
+    s_max = Kaplan_Meier(dane, tau)
+    tail = - s_max * tau / np.log(s_max)
+
+    return area + tail
+</code></pre>
+            </div>
+        <div class="code-block">
+       <pre><code>
+def przedzial_ufnosci_KM(dane, alpha=0.05, tau=0.5):
+    t = dane[0]
+    delta = dane[1]
+    czasy = np.argsort(t)
+    t = t[czasy]
+    delta = delta[czasy]
+    dane = np.array([t, delta])
+
+    zdarzenia = t[delta == 1]
+    zdarzenia = zdarzenia[zdarzenia <= tau]
+    s_max = Kaplan_Meier(dane, tau)
+    suma = 0.0
+
+    for si in zdarzenia:
+        if ri(dane, si) - di(dane, si) == 0:
+            continue
+        integral = mean_survival_KM(si, dane, tau)
+        tail = - s_max * tau / np.log(s_max)
+        suma += (integral + tail)**2 * di(dane, si) / (ri(dane, si) * (ri(dane, si) - di(dane, si)))
+
+    se = np.sqrt(suma)
+    z = stats.norm.ppf(1 - alpha / 2)
+    mu_hat = mean_survival_KM(0, dane, tau)
+
+    lower = mu_hat - z * se
+    upper = mu_hat + z * se
+
+    return lower, upper
+</code></pre>
+        </div>
+
+        <p>
+            gdzie ri to liczba osób w grupie ryzyka w czasie si,
+            a di to liczba zdarzeń w czasie si.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>Zadanie 2: Przedziały ufności dla czasu do progresji raka jajnika</h2>
+
+        <h3>Przedziały ufności na poziomie 0.95</h3>
+
+        <h4>Dla τ = {{TAU1}} dni</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Grupa</th>
+                    <th>Dolna granica</th>
+                    <th>Górna granica</th>
+                    <th>Szerokość</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Niski stopień</td>
+                    <td>{{CI_LOW_TAU1_L}}</td>
+                    <td>{{CI_LOW_TAU1_U}}</td>
+                    <td>{{CI_LOW_TAU1_W}}</td>
+                </tr>
+                <tr>
+                    <td>Wysoki stopień</td>
+                    <td>{{CI_HIGH_TAU1_L}}</td>
+                    <td>{{CI_HIGH_TAU1_U}}</td>
+                    <td>{{CI_HIGH_TAU1_W}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Dla τ = {{TAU2}} dni</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Grupa</th>
+                    <th>Dolna granica</th>
+                    <th>Górna granica</th>
+                    <th>Szerokość</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Niski stopień</td>
+                    <td>{{CI_LOW_TAU2_L}}</td>
+                    <td>{{CI_LOW_TAU2_U}}</td>
+                    <td>{{CI_LOW_TAU2_W}}</td>
+                </tr>
+                <tr>
+                    <td>Wysoki stopień</td>
+                    <td>{{CI_HIGH_TAU2_L}}</td>
+                    <td>{{CI_HIGH_TAU2_U}}</td>
+                    <td>{{CI_HIGH_TAU2_W}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            <strong>Porównanie przedziałów:</strong> {{POROWNANIE_CI}}
+        </p>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- LISTA 8 -->
+    <!-- ========================================================================== -->
+    <div class="section">
+        <h1>Lista 8: Testy porównawcze krzywych przeżycia</h1>
+
+        <h2>Zadanie 1: Testy hipotezy o jednakowych rozkładach</h2>
+        <p>
+            Na poziomie istotności α = 0.05 weryfikujemy hipotezę H₀: funkcje przeżycia
+            w obu grupach pacjentek (niski vs wysoki stopień zaawansowania) są identyczne.
+        </p>
+
+        <h3>Wyniki testów statystycznych</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Test</th>
+                    <th>Statystyka</th>
+                    <th>p-value</th>
+                    <th>Decyzja (α=0.05)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Log-rank (Mantel-Cox)</td>
+                    <td>{{LOGRANK_STAT}}</td>
+                    <td>{{LOGRANK_PVAL}}</td>
+                    <td>{{LOGRANK_DECISION}}</td>
+                </tr>
+                <tr>
+                    <td>Gehan-Breslow (Wilcoxon)</td>
+                    <td>{{BRESLOW_STAT}}</td>
+                    <td>{{BRESLOW_PVAL}}</td>
+                    <td>{{BRESLOW_DECISION}}</td>
+                </tr>
+                <tr>
+                    <td>Tarone-Ware</td>
+                    <td>{{TARONE_STAT}}</td>
+                    <td>{{TARONE_PVAL}}</td>
+                    <td>{{TARONE_DECISION}}</td>
+                </tr>
+                <tr>
+                    <td>Peto-Peto</td>
+                    <td>{{PETO_STAT}}</td>
+                    <td>{{PETO_PVAL}}</td>
+                    <td>{{PETO_DECISION}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <div class="section">
+        <h2>Zadanie 2: Wykresy estymatorów i funkcji wagowych</h2>
+
+        <h3>Krzywe Kaplana-Meiera dla obu grup</h3>
+        <div class="chart-container">
+            <img src="{{WYKRES_KM_GRUPY}}" alt="Krzywe KM dla grup">
+        </div>
+
+        <p>
+            Analiza Kaplan-Meiera pokazuje wyraźną, istotną różnicę między grupami.
+        </p>
+
+        <h3>Funkcje wagowe w statystykach testowych</h3>
+       
+        <div class="chart-container">
+            <img src="{{WYKRES_FUNKCJE_WAG1}}" alt="Funkcje wagowe">
+        </div>
+
+        <div class="chart-container">
+            <img src="{{WYKRES_FUNKCJE_WAG2}}" alt="Funkcje wagowe">
+        </div>
+
+        <h3>Interpretacja różnic w wartościach p</h3>
+        <p>
+            Test Log-rank (Mantel-Cox), który równomiernie
+            waży różnice w całym okresie obserwacji, wykazał statystycznie istotną różnicę w funkcjach
+            przeżycia między grupami (p=0.018308< 0.05) co prowadzi do odrzucenia hipotezy zerowej (H0).
+
+            Natomiast pozostałe testy (Gehan-Breslow, Tarone-Ware, Peto-Peto), które nadają większą wagę
+            różnicom we wczesnym etapie obserwacji, nie pozwoliły na odrzucenie H0. Wniosek jest taki, że
+            istnieją istotne dowody na to, że stopień zaawansowania choroby wpływa na przeżycie pacjentek,
+            szczególnie w późniejszych etapach, a standardowy test Log-rank potwierdza tę różnicę.
+        </p>
+    </div>
+
+</body>
+</html>
