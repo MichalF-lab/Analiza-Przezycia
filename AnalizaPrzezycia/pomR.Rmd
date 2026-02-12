@@ -27,7 +27,8 @@ df$edema <- as.factor(df$edema)
 df$stage <- as.factor(df$stage)
 
 fit_po <- survreg(Surv(time, status) ~ trt + age + bili + albumin + edema + stage,
-                  data = df, dist = "loglogistic")
+                  data = df, 
+                  dist = "weibull")
 
 newdata1 <- data.frame(
   trt = factor(2, levels = levels(df$trt)),
