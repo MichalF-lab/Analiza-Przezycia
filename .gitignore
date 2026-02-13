@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 /uczenie maszynowe/module1.py
+/uczenie maszynowe/data/UCF-101
