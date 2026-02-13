@@ -14,6 +14,7 @@ def wczytaj_i_przygotuj_dane(edema=0.5):
     df = df[['time', 'status', 'trt', 'age', 'bili', 'albumin', 'edema', 'stage']]
 
     df = df[df['status'] != 1]
+    df['event'] = (df['status'] == 2).astype(int)
     df = df.dropna(subset=['trt'])
 
     mean_age = df['age'].mean()
@@ -27,6 +28,7 @@ def wczytaj_i_przygotuj_dane(edema=0.5):
     categorical_vars = ['trt', 'edema', 'stage']
     for col in categorical_vars:
         df[col] = df[col].astype('category')
+
     patient_data = pd.DataFrame({
         'trt': [2],
         'age': [40 - mean_age],
@@ -38,13 +40,14 @@ def wczytaj_i_przygotuj_dane(edema=0.5):
 
     
     for col in categorical_vars:
-        patient_data[col] = patient_data[col].astype('category')
+        df[col] = df[col].astype('category')
+        patient_data[col] = pd.Categorical(patient_data[col], categories=df[col].cat.categories)
 
     return df, patient_data
 
 df, patient_data = wczytaj_i_przygotuj_dane()
 aft = WeibullAFTFitter()
-fit_aft = aft.fit(df, duration_col='time', event_col='status', formula='trt + age + bili + albumin + edema + stage')
+fit_aft = aft.fit(df, duration_col='time', event_col='event', formula='trt + age + bili + albumin + edema + stage')
 
 
 times = np.linspace(0, 4000, 400)
@@ -151,11 +154,6 @@ def fig4():
                 label=f'S₁(2000) = {prob_survival1:.4f}')
     plt.axhline(y=prob_survival2, color='r', linestyle='--', alpha=0.5,
                 label=f'S₂(2000) = {prob_survival2:.4f}')
-    plt.axvline(x=2000, color='green', linestyle='--', alpha=0.5)
-    plt.vlines(x=2000, ymin=0, ymax=max(prob_survival1, prob_survival2), 
-           color='green', linestyle='--', alpha=0.5)
-    plt.vlines(x=2000, ymin=0, ymax=min(prob_survival1, prob_survival2), 
-           color='green', linestyle='--', alpha=0.5)
     plt.scatter([2000, 2000], [prob_survival1, prob_survival2], 
                 color=['blue', 'red'], s=100, zorder=5)
     plt.xlabel('Czas (dni)', fontsize=12)

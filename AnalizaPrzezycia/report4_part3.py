@@ -1,163 +1,192 @@
 ﻿# -*- coding: utf-8 -*-
+from lifelines import LogLogisticAFTFitter
+from report4_part1 import wczytaj_i_przygotuj_dane, survival_at_time_interp, wczytaj_dane_z_r
+import matplotlib.pyplot as plt
+from report_part1 import wykres_do_base64
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import statsmodels.api as sm
-import statsmodels.formula.api as smf
-from report_part1 import wykres_do_base64
+from report4_part2 import fig1, fig2, fig3
 
-def wczytaj_i_przygotuj_dane(edema_val=0.5):
-    url = "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/survival/pbc.csv"
-    df = pd.read_csv(url, index_col=0)
-    df = df[['time', 'status', 'trt', 'age', 'bili', 'albumin', 'edema', 'stage']]
-    df = df[df['status'] != 1]
-    df['status'] = (df['status'] == 2).astype(int)
-    df = df.dropna(subset=['trt', 'stage'])
-    
-    for col in ['trt', 'stage', 'edema']:
-        df[col] = df[col].astype(str)
-    
-    mean_age = df['age'].mean()
-    mean_bili = df['bili'].mean()
-    mean_albumin = df['albumin'].mean()
-    df['age'] = df['age'] - mean_age
-    df['bili'] = df['bili'] - mean_bili
-    df['albumin'] = df['albumin'] - mean_albumin
-    
-    patient_data = pd.DataFrame({
-        'trt': [str(df['trt'].mode()[0])],
+dane, _ = wczytaj_i_przygotuj_dane()
+
+
+cph = LogLogisticAFTFitter()
+cph.fit(
+    dane,
+    duration_col='time',
+    event_col='event',
+    formula="trt + age + bili + albumin + edema + stage"
+)
+
+
+print(cph.summary)
+print(cph.params_)
+
+def create_baseline_profile():
+    _, baseline = wczytaj_i_przygotuj_dane(edema=0)
+    baseline = pd.DataFrame({
+        'trt': [2],
         'age': [0.0],
         'bili': [0.0],
         'albumin': [0.0],
-        'edema': [str(edema_val)],
-        'stage': [str(df['stage'].mode()[0])]
-    })
-    
-    return df, patient_data
-
-lung_encoded, _ = wczytaj_i_przygotuj_dane()
-max_time = int(lung_encoded['time'].max())
-
-def make_person_period(df):
-    df_long = df.loc[df.index.repeat(df['time'])].copy()
-    df_long['interval'] = df_long.groupby(level=0).cumcount() + 1
-    df_long['y'] = 0
-    df_long.loc[(df_long['interval'] == df_long['time']) & (df_long['status'] == 1), 'y'] = 1
-    return df_long.reset_index(drop=True)
-
-long_df = make_person_period(lung_encoded)
-long_df['log_t'] = np.log(long_df['interval'])
-
-formula = "y ~ age + bili + albumin + C(trt) + C(edema) + C(stage) + log_t"
-model = smf.logit(formula, data=long_df)
-result = model.fit(method='bfgs', maxiter=500)
-
-summary_frame = result.summary2().tables[1]
-summary_frame['Exp(coef)'] = np.exp(summary_frame['Coef.'])
-ordered_summary = summary_frame[['Coef.', 'Exp(coef)', 'Std.Err.']]
-
-def predict_survival_curve(res, p_profile, max_t=max_time):
-    surv = 1.0
-    s_vals = [1.0]
-    
-    prob_matrix = res.predict(pd.concat([p_profile]*max_t, ignore_index=True).assign(log_t=np.log(np.arange(1, max_t+1))))
-    
-    for h_t in prob_matrix:
-        surv *= (1 - h_t)
-        s_vals.append(surv)
-        
-    s_vals = np.array(s_vals)
-    h_vals = -np.log(np.clip(s_vals, 1e-10, 1.0))
-    return s_vals, h_vals
-
-_, p1_df = wczytaj_i_przygotuj_dane(0.5)
-_, p2_df = wczytaj_i_przygotuj_dane(1.0)
-
-S1, H1 = predict_survival_curve(result, p1_df.iloc[0:1])
-S2, H2 = predict_survival_curve(result, p2_df.iloc[0:1])
-time_axis = np.arange(0, max_time + 1)
+        'edema': [0],
+        'stage': [3]
+        })
+    return baseline
 
 def fig11():
+    baseline_profile = create_baseline_profile()
+    baseline_hazard = cph.predict_cumulative_hazard(baseline_profile)
     plt.figure(figsize=(10, 6))
-    base_prof = pd.DataFrame({'age':[0.0], 'bili':[0.0], 'albumin':[0.0], 'trt':['1.0'], 'edema':['0.0'], 'stage':['1.0']})
-    _, H_0 = predict_survival_curve(result, base_prof)
-    plt.plot(time_axis, H_0, color='red', label="H0(t)")
-    plt.title("Bazowa skumulowana funkcja hazardu (Profile=0)")
-    plt.xlabel("Dni")
-    plt.ylabel("H0(t)")
+    plt.plot(baseline_hazard.index, baseline_hazard.iloc[:, 0], color='red', lw=2, label="Bazowy skumulowany hazard")
+    plt.xlabel("Czas (dni)")
+    plt.ylabel("Hazard H0(t)")
+    plt.title("Bazowa skumulowana funkcja hazardu")
     plt.legend()
     plt.grid(True, alpha=0.3)
-    return wykres_do_base64(plt)
+    
+    return plt
 
 def fig12():
+    baseline_profile = create_baseline_profile()
+    baseline_survival = cph.predict_survival_function(baseline_profile)
     plt.figure(figsize=(10, 6))
-    base_prof = pd.DataFrame({'age':[0.0], 'bili':[0.0], 'albumin':[0.0], 'trt':['1.0'], 'edema':['0.0'], 'stage':['1.0']})
-    S_0, _ = predict_survival_curve(result, base_prof)
-    plt.plot(time_axis, S_0, color='blue', label="S0(t)")
-    plt.title("Bazowa funkcja przezycia (Profile=0)")
-    plt.xlabel("Dni")
-    plt.ylabel("S0(t)")
+    plt.plot(baseline_survival.index, baseline_survival.iloc[:, 0], color='blue', lw=2, label="Bazowe przezycie")
+    plt.xlabel("Czas (dni)")
+    plt.ylabel("Prawdopodobienstwo przezycia S0(t)")
+    plt.title("Bazowa funkcja przezycia")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    return plt
+
+# 4
+_, patient_profile1 = wczytaj_i_przygotuj_dane(0.5)
+_, patient_profile2 = wczytaj_i_przygotuj_dane(1)
+
+
+hazard_function1 = cph.predict_cumulative_hazard(patient_profile1)
+hazard_function2 = cph.predict_cumulative_hazard(patient_profile2)
+
+t1 = hazard_function1.index.values
+t2 = hazard_function2.index.values
+
+def fig111():
+    plt = fig1()
+    plt.plot(t1, hazard_function1, label="edema=0.5")
+    plt.plot(t2, hazard_function2, label="edema=1")
+    plt.xlabel("Czas (dni)")
+    plt.ylabel("Hazard H(t)")
+    plt.title('Funkcja przezycia pacjenta, bili=3, albumin=4', 
+              fontsize=14, fontweight='bold')
     plt.legend()
     plt.grid(True, alpha=0.3)
     return wykres_do_base64(plt)
 
-def fig1():
+
+def fig22():
+    lnhazard_function1 = np.log(hazard_function1)
+    lnhazard_function2 = np.log(hazard_function2)
+
+    plt = fig2()
+    plt.plot(t1, lnhazard_function1, label="edema=0.5")
+    plt.plot(t2, lnhazard_function2, label="edema=1")
+    plt.xlabel("Czas (dni)")
+    plt.ylabel("ln H(t)")
+    plt.title('Logarytm funkcji przezycia pacjenta, bili=3, albumin=4', 
+              fontsize=14, fontweight='bold')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    return wykres_do_base64(plt)  
+
+# 5 6
+survival_function1 = cph.predict_survival_function(patient_profile1)
+survival_function2 = cph.predict_survival_function(patient_profile2)
+prob_survival1 = survival_at_time_interp(survival_function1.iloc[:, 0], 2000)
+prob_survival2 = survival_at_time_interp(survival_function2.iloc[:, 0], 2000)
+prob_survival = survival_at_time_interp(survival_function1.iloc[:, 0], 2000)
+
+def create_baseline_profile(dane = dane):
+    # dla scentryzowanych zmiennych ciągłych baseline = 0
+    baseline = pd.DataFrame({
+        "trt":   [dane["trt"].cat.categories[0]],
+        "age":   [0.0],
+        "bili":  [0.0],
+        "albumin":[0.0],
+        "edema": [dane["edema"].cat.categories[0]],
+        "stage": [dane["stage"].cat.categories[0]],
+    })
+
+    # narzuć dokładnie te same dtype Categorical co w danych uczących
+    for col in ["trt", "edema", "stage"]:
+        baseline[col] = pd.Categorical(baseline[col], categories=dane[col].cat.categories)
+
+    return baseline
+
+def fig33():
     plt.figure(figsize=(10, 6))
-    plt.plot(time_axis, H1, '--', label="PS: edema=0.5")
-    plt.plot(time_axis, H2, '--', label="PS: edema=1.0")
-    plt.title("Skumulowany hazard: Porownanie edema=0.5 vs 1.0")
-    plt.xlabel("Dni")
-    plt.ylabel("H(t)")
+    S1 = survival_function1.iloc[:, 0]
+    S2 = survival_function2.iloc[:, 0]
+
+    plt.plot(S1.index, S1.values, label="edema=0.5")
+    plt.plot(S2.index, S2.values, label="edema=1")
+
+    t_star = 2000
+    prob1 = np.interp(t_star, S1.index.values, S1.values)
+    prob2 = np.interp(t_star, S2.index.values, S2.values)
+
+
+    plt.axvline(x=t_star, linestyle="--", alpha=0.5)
+    plt.axhline(y=prob1, linestyle="--", label=f"S1(2000)={prob1:.4f}")
+    plt.axhline(y=prob2, linestyle="--", label=f"S2(2000)={prob2:.4f}")
+
+
+    plt.xlabel("Czas (dni)")
+    plt.ylabel("Prawdopodobienstwo przezycia S(t)")
+    plt.title("Funkcja przezycia pacjenta")
     plt.legend()
     plt.grid(True, alpha=0.3)
     return wykres_do_base64(plt)
 
-def fig2():
-    plt.figure(figsize=(10, 6))
-    plt.plot(time_axis[1:], np.log(np.clip(H1[1:], 1e-10, None)), label="PS: edema=0.5")
-    plt.plot(time_axis[1:], np.log(np.clip(H2[1:], 1e-10, None)), label="PS: edema=1.0")
-    plt.title("Wykres ln(H(t)): Sprawdzenie zalozenia proporcjonalnosci")
-    plt.xlabel("Dni")
-    plt.ylabel("ln(H(t))")
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    return wykres_do_base64(plt)
 
-def fig3():
-    plt.figure(figsize=(10, 6))
-    plt.plot(time_axis, S1, '--', label="PS: edema=0.5")
-    plt.plot(time_axis, S2, '--', label="PS: edema=1.0")
-    plt.title("Funkcje przezycia modelu PS")
-    plt.xlabel("Dni")
-    plt.ylabel("S(t)")
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    return wykres_do_base64(plt)
+def survival_at_time(S_df, t):
+    times = S_df.index.values
+    values = S_df.iloc[:, 0].values
+    return np.interp(t, times, values)
+
+t_star = 2000
+prob_survival1 = survival_at_time(survival_function1, t_star)
+prob_survival2 = survival_at_time(survival_function2, t_star)
+
+print(f"P(T > 2000) dla edema=0.5: {prob_survival1:.4f} ({prob_survival1*100:.2f}%)")
+print(f"P(T > 2000) dla edema=1: {prob_survival2:.4f} ({prob_survival2*100:.2f}%)")
+dane_r = wczytaj_dane_z_r()
 
 def fig5():
-    plt.figure(figsize=(10, 6))
-    plt.plot(time_axis, S1, label="edema=0.5")
-    plt.plot(time_axis, S2, label="edema=1.0")
-    plt.title("Krzywe przezycia modelu Proporcjonalnych Szans")
-    plt.xlabel("Dni")
-    plt.ylabel("S(t)")
+    S1 = survival_function1.iloc[:, 0]
+    plt = fig3()
+    plt.plot(S1.index, S1.values, label="edema=0.5")
+    t_star = 2000
+    prob1 = np.interp(t_star, S1.index.values, S1.values)
+    plt.axhline(y=prob1, linestyle="--", label=f"S1(2000)={prob1:.4f}")
+    plt.xlabel("Czas (dni)")
+    plt.ylabel("Prawdopodobienstwo przezycia S(t)")
+    plt.title("Funkcja przezycia: PO vs COX")
     plt.legend()
     plt.grid(True, alpha=0.3)
     return wykres_do_base64(plt)
 
-prob_survival1 = S1[2000] if 2000 < len(S1) else S1[-1]
-prob_survival2 = S2[2000] if 2000 < len(S2) else S2[-1]
 
 def przeslij_dane3():
     return {
-        "ordered_model_summary": ordered_summary.to_html(),
-        "ordered_model_params": result.params,
-        "fig11": fig11(),
-        "fig12": fig12(),
-        "fig1": fig1(),
-        "fig2": fig2(),
-        "fig3": fig3(),
+        "ordered_model_summary": cph.summary,
+        "ordered_model_params": cph.params_,
+        "fig1": fig111(),
+        "fig2": fig22(),
+        "fig3": fig33(),
         "fig5": fig5(),
         "prob_survival1": prob_survival1,
-        "prob_survival2": prob_survival2
+        "prob_survival2": prob_survival2,
+        "fig11": wykres_do_base64(fig11()),
+        "fig12": wykres_do_base64(fig12()),
     }

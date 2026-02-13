@@ -176,7 +176,9 @@ def stworz_html(d1, d2, d3, d4):
 
     # Wykresy przeżycia (zadanie 5-6)
     fig3_po = d3['fig3'] if d3['fig3'].startswith('data:') else f"data:image/png;base64,{d3['fig3']}"
+    fig5_po = d3['fig5'] if d3['fig5'].startswith('data:') else f"data:image/png;base64,{d3['fig5']}"
     html = html.replace("{{WYKRES_PO_SURV}}", fig3_po)
+    html = html.replace("{{WYKRE5_PO_SURV}}", fig5_po)
     html = html.replace("{{PROB_PO_PH1_300}}", format_value(d3['prob_survival1'], 4))
     html = html.replace("{{PROB_PO_PH1_300_PCT}}", format_percent(d3['prob_survival1']))
     html = html.replace("{{PROB_PO_PH2_300}}", format_value(d3['prob_survival2'], 4))
@@ -187,37 +189,82 @@ def stworz_html(d1, d2, d3, d4):
     
     print("   Przetwarzanie danych Lista 12...")
     
-    # Model AFT - testy
-    html = html.replace("{{AFT_AGE_WALD}}", format_value(d4['1A'], 6))
-    html = html.replace("{{AFT_AGE_LRT}}", format_value(d4['1A1'], 6))
+    # Model AFT - testy age
+    html = html.replace("{{AFT_AGE_WALD}}", format_value(d4['zadanie_1']['1a']['wald_pvalue'], 6))
+    html = html.replace("{{AFT_AGE_LRT}}", format_value(d4['zadanie_1']['1a']['lrt_pvalue'], 6))
+    html = html.replace("{{AFT_AGE_WALD_STAT}}", format_value(d4['zadanie_1']['1a']['wald_statistic'], 6))
+    html = html.replace("{{AFT_AGE_LRT_STAT}}", format_value(d4['zadanie_1']['1a']['lrt_statistic'], 6))
     html = html.replace("{{AFT_AGE_WNIOSKI}}", 
-                       "Zmienna age JEST istotna (p < 0.05)" if d4['1A'] < 0.05 else "Zmienna age NIE jest istotna (p ≥ 0.05)")
+                       "Zmienna age JEST istotna (p < 0.05)" if d4['zadanie_1']['1a']['wald_pvalue'] < 0.05 else "Zmienna age NIE jest istotna (p >= 0.05)")
     
-    html = html.replace("{{AFT_SEX_WALD}}", format_value(d4['1B'], 6))
-    html = html.replace("{{AFT_SEX_LRT}}", format_value(d4['1B1'], 6))
-    html = html.replace("{{AFT_SEX_WNIOSKI}}", 
-                       "Zmienna sex JEST istotna (p < 0.05)" if d4['1B'] < 0.05 else "Zmienna sex NIE jest istotna (p ≥ 0.05)")
+    # Model AFT - testy trt
+    html = html.replace("{{AFT_TRT_WALD}}", format_value(d4['zadanie_1']['1b']['wald_pvalue'], 6))
+    html = html.replace("{{AFT_TRT_LRT}}", format_value(d4['zadanie_1']['1b']['lrt_pvalue'], 6))
+    html = html.replace("{{AFT_TRT_WALD_STAT}}", format_value(d4['zadanie_1']['1b']['wald_statistic'], 6))
+    html = html.replace("{{AFT_TRT_LRT_STAT}}", format_value(d4['zadanie_1']['1b']['lrt_statistic'], 6))
+    html = html.replace("{{AFT_TRT_WNIOSKI}}", 
+                       "Zmienna trt JEST istotna (p < 0.05)" if d4['zadanie_1']['1b']['wald_pvalue'] < 0.05 else "Zmienna trt NIE jest istotna (p >= 0.05)")
     
-    html = html.replace("{{AFT_ECOG_LRT}}", format_value(d4['1C'], 6))
-    html = html.replace("{{AFT_ECOG_WNIOSKI}}", 
-                       "Zmienna ph.ecog JEST istotna (p < 0.05)" if d4['1C'] < 0.05 else "Zmienna ph.ecog NIE jest istotna (p ≥ 0.05)")
+    # Model AFT - testy stage
+    html = html.replace("{{AFT_STAGE_LRT}}", format_value(d4['zadanie_1']['1c']['lrt_pvalue'], 6))
+    html = html.replace("{{AFT_STAGE_LRT_STAT}}", format_value(d4['zadanie_1']['1c']['lrt_statistic'], 6))
+    html = html.replace("{{AFT_STAGE_DF}}", format_value(d4['zadanie_1']['1c']['df'], 0))
+    html = html.replace("{{AFT_STAGE_WNIOSKI}}", 
+                       "Zmienna stage JEST istotna (p < 0.05)" if d4['zadanie_1']['1c']['lrt_pvalue'] < 0.05 else "Zmienna stage NIE jest istotna (p >= 0.05)")
     
-    # Model Cox - testy
-    html = html.replace("{{COX_AGE_WALD}}", format_value(d4['2A'], 6))
-    html = html.replace("{{COX_AGE_LRT}}", format_value(d4['2A1'], 6))
+    # Model Cox - testy age
+    html = html.replace("{{COX_AGE_WALD}}", format_value(d4['zadanie_2']['2a']['wald_pvalue'], 6))
+    html = html.replace("{{COX_AGE_LRT}}", format_value(d4['zadanie_2']['2a']['lrt_pvalue'], 6))
+    html = html.replace("{{COX_AGE_WALD_STAT}}", format_value(d4['zadanie_2']['2a']['wald_statistic'], 6))
+    html = html.replace("{{COX_AGE_LRT_STAT}}", format_value(d4['zadanie_2']['2a']['lrt_statistic'], 6))
     html = html.replace("{{COX_AGE_WNIOSKI}}", 
-                       "Zmienna age JEST istotna (p < 0.05)" if d4['2A'] < 0.05 else "Zmienna age NIE jest istotna (p ≥ 0.05)")
+                       "Zmienna age JEST istotna (p < 0.05)" if d4['zadanie_2']['2a']['wald_pvalue'] < 0.05 else "Zmienna age NIE jest istotna (p >= 0.05)")
     
-    html = html.replace("{{COX_SEX_WALD}}", format_value(d4['2B'], 6))
-    html = html.replace("{{COX_SEX_LRT}}", format_value(d4['2B1'], 6))
-    html = html.replace("{{COX_SEX_WNIOSKI}}", 
-                       "Zmienna sex JEST istotna (p < 0.05)" if d4['2B'] < 0.05 else "Zmienna sex NIE jest istotna (p ≥ 0.05)")
+    # Model Cox - testy trt
+    html = html.replace("{{COX_TRT_WALD}}", format_value(d4['zadanie_2']['2b']['wald_pvalue'], 6))
+    html = html.replace("{{COX_TRT_LRT}}", format_value(d4['zadanie_2']['2b']['lrt_pvalue'], 6))
+    html = html.replace("{{COX_TRT_WALD_STAT}}", format_value(d4['zadanie_2']['2b']['wald_statistic'], 6))
+    html = html.replace("{{COX_TRT_LRT_STAT}}", format_value(d4['zadanie_2']['2b']['lrt_statistic'], 6))
+    html = html.replace("{{COX_TRT_WNIOSKI}}", 
+                       "Zmienna trt JEST istotna (p < 0.05)" if d4['zadanie_2']['2b']['wald_pvalue'] < 0.05 else "Zmienna trt NIE jest istotna (p >= 0.05)")
     
-    html = html.replace("{{COX_ECOG_LRT}}", format_value(d4['2C'], 6))
-    html = html.replace("{{COX_ECOG_WNIOSKI}}", 
-                       "Zmienna ph.ecog JEST istotna (p < 0.05)" if d4['2C'] < 0.05 else "Zmienna ph.ecog NIE jest istotna (p ≥ 0.05)")
-
+    # Model Cox - testy stage
+    html = html.replace("{{COX_STAGE_LRT}}", format_value(d4['zadanie_2']['2c']['lrt_pvalue'], 6))
+    html = html.replace("{{COX_STAGE_LRT_STAT}}", format_value(d4['zadanie_2']['2c']['lrt_statistic'], 6))
+    html = html.replace("{{COX_STAGE_DF}}", format_value(d4['zadanie_2']['2c']['df'], 0))
+    html = html.replace("{{COX_STAGE_WNIOSKI}}", 
+                       "Zmienna stage JEST istotna (p < 0.05)" if d4['zadanie_2']['2c']['lrt_pvalue'] < 0.05 else "Zmienna stage NIE jest istotna (p >= 0.05)")
+    
+    # Zadanie 3a - Backward elimination AFT
+    html = html.replace("{{AFT_BACKWARD_VARS}}", ", ".join(d4['zadanie_3']['3a']['final_variables']))
+    html = html.replace("{{AFT_BACKWARD_LOGLIK}}", format_value(d4['zadanie_3']['3a']['log_likelihood'], 6))
+    
+    # Zadanie 3b - AIC AFT
+    html = html.replace("{{AFT_AIC_VARS}}", ", ".join(d4['zadanie_3']['3b']['best_variables']))
+    html = html.replace("{{AFT_AIC_VALUE}}", format_value(d4['zadanie_3']['3b']['best_aic'], 6))
+    html = html.replace("{{AFT_AIC_LOGLIK}}", format_value(d4['zadanie_3']['3b']['log_likelihood'], 6))
+    
+    # Zadanie 3c - BIC AFT
+    html = html.replace("{{AFT_BIC_VARS}}", ", ".join(d4['zadanie_3']['3c']['best_variables']))
+    html = html.replace("{{AFT_BIC_VALUE}}", format_value(d4['zadanie_3']['3c']['best_bic'], 6))
+    html = html.replace("{{AFT_BIC_LOGLIK}}", format_value(d4['zadanie_3']['3c']['log_likelihood'], 6))
+    
+    # Zadanie 4a - Backward elimination Cox
+    html = html.replace("{{COX_BACKWARD_VARS}}", ", ".join(d4['zadanie_4']['4a']['final_variables']))
+    html = html.replace("{{COX_BACKWARD_LOGLIK}}", format_value(d4['zadanie_4']['4a']['log_likelihood'], 6))
+    
+    # Zadanie 4b - AIC Cox
+    html = html.replace("{{COX_AIC_VARS}}", ", ".join(d4['zadanie_4']['4b']['best_variables']))
+    html = html.replace("{{COX_AIC_VALUE}}", format_value(d4['zadanie_4']['4b']['best_aic'], 6))
+    html = html.replace("{{COX_AIC_LOGLIK}}", format_value(d4['zadanie_4']['4b']['log_likelihood'], 6))
+    
+    # Zadanie 4c - BIC Cox
+    html = html.replace("{{COX_BIC_VARS}}", ", ".join(d4['zadanie_4']['4c']['best_variables']))
+    html = html.replace("{{COX_BIC_VALUE}}", format_value(d4['zadanie_4']['4c']['best_bic'], 6))
+    html = html.replace("{{COX_BIC_LOGLIK}}", format_value(d4['zadanie_4']['4c']['log_likelihood'], 6))
+    
     return html
+  
 
 
 def sprawdz_pliki():

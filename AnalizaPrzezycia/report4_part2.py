@@ -10,7 +10,13 @@ import pandas as pd
 dane, _ = wczytaj_i_przygotuj_dane()
 
 cph = CoxPHFitter()
-cph.fit(dane, duration_col='time', event_col='status')
+cph.fit(
+    dane,
+    duration_col='time',
+    event_col='event',
+    formula="C(trt) + age + bili + albumin + C(edema) + C(stage)"
+)
+
 
 print(cph.summary)
 print(cph.params_)
@@ -62,7 +68,7 @@ def fig1():
               fontsize=14, fontweight='bold')
     plt.legend()
     plt.grid(True, alpha=0.3)
-    return wykres_do_base64(plt)
+    return plt
 
 
 def fig2():
@@ -78,7 +84,7 @@ def fig2():
               fontsize=14, fontweight='bold')
     plt.legend()
     plt.grid(True, alpha=0.3)
-    return wykres_do_base64(plt)  
+    return plt
 
 # 5 6
 survival_function1 = cph.predict_survival_function(patient_profile1)
@@ -91,21 +97,21 @@ prob_survival = survival_at_time_interp(survival_function1.iloc[:, 0], 2000)
 def fig3():
     plt.figure(figsize=(10, 6))
     plt.plot(survival_function1.index, survival_function1.values)
-    plt.plot(survival_function2.index, survival_function2.values)
     plt.xlabel('Czas (dni)')
     plt.ylabel('Prawdopodobienstwo przezycia S(t)')
     plt.title('Funkcja przezycia pacjenta, bili=3, albumin=4, edema=0.5', 
               fontsize=14, fontweight='bold')
     plt.axhline(y=prob_survival1, color='r', linestyle='--', label=f'S(2000) = {prob_survival1:.4f}')
-    plt.axhline(y=prob_survival2, color='r', linestyle='--', label=f'S(2000) = {prob_survival2:.4f}')
-    bs = cph.baseline_survival_
-    idx_closest = np.abs(bs.index.values - 2000).argmin()
-    prob_baseline_2000 = bs.iloc[idx_closest, 0]
-    plt.axhline(y=prob_baseline_2000, color='black', linestyle=':', label=f'Bazowe S(2000) = {prob_baseline_2000:.4f}')
-    plt.axvline(x=2000, color='r', linestyle='--', alpha=0.5)
     plt.legend()
     plt.grid(True, alpha=0.3)
-    return wykres_do_base64(plt)
+    return plt
+
+def fig3old():
+    plt = fig3()
+    plt.plot(survival_function2.index, survival_function2.values)
+    plt.axhline(y=prob_survival2, color='r', linestyle='--', label=f'S(2000) = {prob_survival2:.4f}')
+    return plt
+
 
 
 def survival_at_time(S_df, t):
@@ -125,7 +131,7 @@ def fig5():
     plt.figure(figsize=(10, 6))
     plt.plot(dane['survival_ph1']['time'], 
              dane['survival_ph1']['value'], 
-             'b-', linewidth=2.5, label='Model Weibull AFT (edema=0.5)')
+             'b-', linewidth=2.5, label='Model PH (edema=0.5)')
 
     plt.xlabel('Czas (dni)')
     plt.ylabel('Prawdopodobienstwo przezycia S(t)')
@@ -137,16 +143,15 @@ def fig5():
     return wykres_do_base64(plt)
 
 
-
 def przeslij_dane2():
     return {
         "cph_summary": cph.summary,
         "cph_params": cph.params_,
         "fig11": fig11(),
         "fig12": fig12(),
-        "fig1": fig1(),
-        "fig2": fig2(),
-        "fig3": fig3(),
+        "fig1": wykres_do_base64(fig1()),
+        "fig2": wykres_do_base64(fig2()),
+        "fig3": wykres_do_base64(fig3old()),
         "fig5": fig5(),
         "prob_survival1": prob_survival1,
         "prob_survival2": prob_survival2,
