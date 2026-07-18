@@ -2,6 +2,8 @@
 from lifelines import CoxPHFitter
 from report3_part1 import wczyuj_i_przygotuj_dane_lung, wczytaj_i_przygotuj_dane_pacjentki
 import matplotlib.pyplot as plt
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lista-01'))
 from report_part1 import wykres_do_base64
 import numpy as np
 import pandas as pd
@@ -80,7 +82,6 @@ survival_function2 = cph.predict_survival_function(patient_profile2)
 prob_survival1 = survival_function1.loc[300].values[0]
 prob_survival2 = survival_function2.loc[300].values[0]
 prob_survival = survival_function1.loc[300].values[0]
-def fig3():
 
 def fig3():
     plt.figure(figsize=(10, 6))
@@ -123,9 +124,10 @@ def fig5():
     plt.xlabel('Czas (dni)')
     plt.ylabel('Prawdopodobienstwo przezycia S(t)')
     plt.title('Funkcja przezycia dla kobiety, wiek=70, ph.ecog=1, ph.karno=90')
-    plt.axhline(y=prob_survival1, color='r', linestyle='--', label=f'S(300) = {prob_survival1:.4f}')
+    plt.axhline(y=prob_survival1, color='r', linestyle='--', 
+                label=f'S(300) = {prob_survival1:.4f}')
     plt.plot(survival_function1.index, survival_function1.values)
-    plt.axhline(y=prob_survival, linestyle='--', label=f'S(300) = {prob_survival:.4f}')
+    plt.axhline(y=prob_survival1, color='r', linestyle='--', label=f'S(300) = {prob_survival1:.4f}')
     plt.legend()
     plt.grid(True, alpha=0.3)
     return wykres_do_base64(plt)

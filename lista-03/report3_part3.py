@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 import numpy as np
 import pandas as pd
@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
 from report3_part1 import wczyuj_i_przygotuj_dane_lung, wczytaj_i_przygotuj_dane_pacjentki
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lista-01'))
 from report_part1 import wykres_do_base64
 
 
