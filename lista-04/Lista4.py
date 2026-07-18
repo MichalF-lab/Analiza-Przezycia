@@ -270,7 +270,7 @@ def stworz_html(d1, d2, d3, d4):
 def sprawdz_pliki():
     """Sprawdza czy wszystkie wymagane pliki istnieją"""
     wymagane_pliki = [
-        'szablon4.html', 'style.css',
+        'szablon4.html', '../wspolne/style.css',
         'report4_part1.py', 'report4_part2.py', 'report4_part3.py', 'report4_part4.py'
     ]
     brakujace = []
@@ -326,7 +326,7 @@ def generuj_pdf(nazwa_pliku="raport_lista4.pdf"):
         return False
     
     print("🎨 Ładowanie stylów CSS...")
-    css_content = wczytaj_plik('style.css')
+    css_content = wczytaj_plik('../wspolne/style.css')
     if not css_content:
         return False
     

@@ -2,6 +2,8 @@
 import pandas as pd
 import numpy as np
 import os
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lista-01'))
 from report_part1 import wykres_do_base64
 import pandas as pd
 import numpy as np

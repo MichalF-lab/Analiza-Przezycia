@@ -3,6 +3,8 @@
 from lifelines import CoxPHFitter
 from report4_part1 import wczytaj_i_przygotuj_dane, survival_at_time_interp, wczytaj_dane_z_r
 import matplotlib.pyplot as plt
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lista-01'))
 from report_part1 import wykres_do_base64
 import numpy as np
 import pandas as pd
