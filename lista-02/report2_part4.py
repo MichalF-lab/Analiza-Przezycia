@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from lifelines.statistics import logrank_test, multivariate_logrank_test
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lista-01'))
 from report_part1 import wykres_do_base64
 
 # Dane
